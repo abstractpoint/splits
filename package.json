@@ -1,0 +1,70 @@
+{
+  "name": "with-tailwindcss",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "eslint": "eslint . --ext '.ts,.tsx'",
+    "eslint:fix": "eslint . --ext '.ts,.tsx' --fix",
+    "prettier:check": "prettier --check --config .prettierrc './**/*.{ts,tsx,sol}'",
+    "prettier": "prettier --config .prettierrc './**/*.{ts,tsx,sol}' --write",
+    "prettier:web": "prettier --config .prettierrc './**/*.{ts,tsx}' --write",
+    "prettier:contracts": "prettier --config .prettierrc './contracts/**/*.sol' --write"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{sol}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@usedapp/core": "^0.3.24",
+    "ethereum-blockies-base64": "^1.0.2",
+    "ethers": "^5.3.1",
+    "lodash": "^4.17.21",
+    "next": "^10.2.3",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-feather": "^2.0.9",
+    "react-hook-form": "^7.8.6"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-solhint": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@types/lodash": "^4.14.170",
+    "@types/node": "^15.12.2",
+    "@types/react": "^17.0.11",
+    "@typescript-eslint/eslint-plugin": "^4.27.0",
+    "@typescript-eslint/parser": "^4.27.0",
+    "autoprefixer": "^10.0.4",
+    "chai": "^4.3.4",
+    "eslint": "^7.28.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-no-loops": "^0.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.24.0",
+    "ethereum-waffle": "^3.3.0",
+    "hardhat": "^2.3.2",
+    "hardhat-deploy": "^0.7.11",
+    "hardhat-deploy-ethers": "^0.3.0-beta.10",
+    "hardhat-typechain": "^0.3.5",
+    "husky": "^6.0.0",
+    "lint-staged": "^11.0.0",
+    "postcss": "^8.1.10",
+    "prettier": "^2.3.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "solhint": "^3.3.6",
+    "solhint-plugin-prettier": "^0.0.5",
+    "tailwindcss": "^2.1.1",
+    "ts-generator": "^0.1.1",
+    "typechain": "^5.0.0",
+    "typescript": "^4.3.2"
+  }
+}

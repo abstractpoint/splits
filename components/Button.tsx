@@ -20,7 +20,7 @@ export default function Button(btn: IButton): JSX.Element {
       } flex items-center justify-center font-semibold focus:outline-none focus:ring-2 focus:ring-${buttonColor}-200 transition ${
         btn.isDisabled
           ? `disabled opacity-20 cursor-default`
-          : `hover:text-${buttonColor}-400`
+          : `hover:bg-${buttonColor}-100`
       }`}
     >
       {btn.children}

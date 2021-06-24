@@ -141,9 +141,14 @@ function ClaimFunds({ amount }: { amount: number }) {
               {account.substring(0, 6)}
             </div>
           </div>
-          <Button onClick={() => alert('Claim funds')} compact color={'purple'}>
+          <button
+            onClick={() => alert('Claim funds')}
+            className={
+              'rounded-2xl bg-white bg-opacity-90 shadow px-4 py-2.5 font-semibold text-purple-500 hover:bg-opacity-100 focus:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-white transition'
+            }
+          >
             Claim Funds &rarr;
-          </Button>
+          </button>
         </div>
       </div>
     )
@@ -151,25 +156,30 @@ function ClaimFunds({ amount }: { amount: number }) {
 }
 
 function DistributeFunds({ amount }: { amount: number }) {
+  const { account } = useEthers()
   return (
     <div
       className={
-        'p-4 bg-blue-50 text-blue-500 font-medium rounded-2xl flex items-center'
+        'p-4 bg-blue-50 text-blue-500 font-medium rounded-3xl space-y-4 md:space-y-0 md:flex md:items-center'
       }
     >
       <div className={'flex-grow'}>
-        Earn {(amount * 0.01).toFixed(4)} ETH by distributing funds.
+        Earn ${(amount * 0.01).toFixed(4)} ETH by making these funds claimable.
       </div>
-      <div>
-        <button
-          className={
-            'bg-blue-500 bg-opacity-10 hover:bg-opacity-20 text-blue-500 font-medium px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 transition'
-          }
-          onClick={() => alert('Distribute funds')}
-        >
-          Distribute
-        </button>
-      </div>
+      {/* Display CTA to distribute funds only if wallet is connected */}
+      {account ? (
+        <div>
+          <Button
+            compact
+            color={'blue'}
+            onClick={() => alert('Distribute funds')}
+          >
+            Distribute
+          </Button>
+        </div>
+      ) : (
+        <ConnectButton />
+      )}
     </div>
   )
 }
@@ -177,24 +187,23 @@ function DistributeFunds({ amount }: { amount: number }) {
 function ErrorWrapper({ error }: { error: string }) {
   return (
     <div
-      className={
-        'fixed top-0 inset-x-0 bg-red-100 text-red-500 text-center p-2'
-      }
+      className={`fixed top-0 inset-x-0 bg-red-100 text-red-500 text-center p-1`}
     >
       {error}
     </div>
   )
 }
 
-function Menu() {
-  const router = useRouter()
-  const { account, activateBrowserWallet } = useEthers()
-
+function ConnectButton() {
+  const { activateBrowserWallet } = useEthers()
   const [activateError, setActivateError] = useState<string>('')
   const { error } = useEthers()
   useEffect(() => {
     if (error) {
       setActivateError(error.message)
+      setTimeout(() => {
+        setActivateError('')
+      }, 3000)
     }
   }, [error])
 
@@ -202,10 +211,22 @@ function Menu() {
     setActivateError('')
     activateBrowserWallet()
   }
+  return (
+    <>
+      {activateError != '' && <ErrorWrapper error={activateError} />}
+      <Button color={'blue'} compact onClick={() => activate()}>
+        Connect
+      </Button>
+    </>
+  )
+}
+
+function Menu() {
+  const router = useRouter()
+  const { account } = useEthers()
 
   return (
     <div className={'py-4 flex items-center space-x-2'}>
-      {activateError != '' && <ErrorWrapper error={activateError} />}
       {account ? (
         <>
           <Button
@@ -220,14 +241,13 @@ function Menu() {
           </Button>
         </>
       ) : (
-        <Button color={'blue'} compact onClick={() => activate()}>
-          Connect
-        </Button>
+        <ConnectButton />
       )}
     </div>
   )
 }
 
+// Display different address UI if recipient is verified (ENS etc)
 function VerifiedRecipient({
   address,
   resolveName,
@@ -249,6 +269,7 @@ function VerifiedRecipient({
   )
 }
 
+// Display each receipient as a line item with avatar, address, ownership
 function Recipient({ recipient }: { recipient: IRecipient }) {
   const { account, chainId } = useEthers()
   return (
@@ -258,8 +279,7 @@ function Recipient({ recipient }: { recipient: IRecipient }) {
       }`}
     >
       <a
-        href={getExplorerAddressLink(recipient.address, chainId)}
-        target={'_blank noref'}
+        href={chainId && getExplorerAddressLink(recipient.address, chainId)}
         className={'flex items-center space-x-2 hover:opacity-80'}
       >
         <img
@@ -302,7 +322,7 @@ function Split({ split }: { split: ISplit }) {
         </div>
         <div className={`flex items-center space-x-4`}>
           <a
-            href={getExplorerAddressLink(split.address, chainId)}
+            href={chainId && getExplorerAddressLink(split.address, chainId)}
             className={
               'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
             }

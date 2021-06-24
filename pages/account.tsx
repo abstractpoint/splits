@@ -1,12 +1,11 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Button from 'components/Button'
-
 import {
   useEthers,
   shortenAddress,
@@ -32,6 +31,12 @@ export default function Account(): JSX.Element {
     router.push('/')
   }
 
+  useEffect(() => {
+    if (!account) {
+      router.push('/')
+    }
+  })
+
   if (account && chainId) {
     return (
       <Layout>
@@ -41,15 +46,9 @@ export default function Account(): JSX.Element {
             Account
           </div>
           <div className={'py-4 flex items-center space-x-4 text-xl'}>
-            <Link href={'/'}>
-              <a
-                className={
-                  'flex px-4 py-2.5 rounded-xl text-base font-semibold bg-gray-50 text-gray-500 hover:text-gray-400 transition focus:outline-none focus:ring-2 focus:ring-gray-200'
-                }
-              >
-                Close
-              </a>
-            </Link>
+            <Button compact onClick={() => router.push('/')}>
+              Close
+            </Button>
           </div>
         </div>
         <div
@@ -62,20 +61,18 @@ export default function Account(): JSX.Element {
             {account && shortenAddress(account)}
           </div>
           <div className={'w-full grid grid-cols-1 md:grid-cols-3 gap-4'}>
-            <a
-              href={getExplorerAddressLink(account, chainId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={
-                'w-full text-center px-4 py-2.5 rounded-xl text-base font-semibold bg-gray-50 text-gray-500 hover:text-gray-400 transition'
+            <Button
+              compact
+              onClick={() =>
+                router.push(getExplorerAddressLink(account, chainId) as 'url')
               }
             >
               Etherscan
-            </a>
-            <Button compact color={`gray`} onClick={() => copyToClipboard()}>
+            </Button>
+            <Button compact onClick={() => copyToClipboard()}>
               {isCopied ? 'Copied' : 'Copy'}
             </Button>
-            <Button compact color={'gray'} onClick={() => disconnectWallet()}>
+            <Button compact onClick={() => disconnectWallet()}>
               Disconnect
             </Button>
           </div>
@@ -83,5 +80,18 @@ export default function Account(): JSX.Element {
         <div className={'pt-8 text-2xl font-medium'}>Created Splits</div>
       </Layout>
     )
-  } else return <div />
+  } else
+    return (
+      <Layout>
+        <Title value="Account | Splits" />
+        <div
+          className={
+            'w-full pt-24 flex flex-col items-center justify-center space-y-4'
+          }
+        >
+          <div className={'w-20 h-20 rounded-3xl bg-gray-200 animate-pulse'} />
+          <div className={'bg-gray-200 rounded-2xl h-12 w-48 animate-pulse'} />
+        </div>
+      </Layout>
+    )
 }

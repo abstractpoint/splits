@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import 'tailwindcss/tailwind.css'
 import 'styles/styles.css'
 import { DAppProvider, ChainId } from '@usedapp/core'
@@ -11,13 +11,15 @@ const config = {
   },
 }
 
+type IPageProps = Record<string, never>
+
 function App({
   Component,
   pageProps,
 }: {
-  Component: React.Component
-  pageProps: any
-}) {
+  Component: React.ElementType
+  pageProps: IPageProps
+}): JSX.Element {
   return (
     <DAppProvider config={config}>
       <Component {...pageProps} />

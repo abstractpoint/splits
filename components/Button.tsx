@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 
 interface IButton {
   children: React.ReactNode
@@ -13,7 +13,7 @@ export default function Button(btn: IButton): JSX.Element {
   const buttonColor = btn.color ? btn.color : 'purple'
   return (
     <button
-      onClick={btn.isDisabled ? null : btn.onClick}
+      onClick={btn.isDisabled ? undefined : btn.onClick}
       type={btn.type ? btn.type : 'button'}
       className={`rounded-2xl bg-${buttonColor}-50 text-${buttonColor}-500 text-base px-4 py-2.5 ${
         !btn.compact && `w-full`

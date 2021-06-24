@@ -1,9 +1,9 @@
-import React from 'react'
+import * as React from 'react'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
-import Title from '../components/Title'
-import Layout from '../components/Layout'
+import Title from 'components/Title'
+import Layout from 'components/Layout'
 import Button from 'components/Button'
 import {
   useEthers,
@@ -258,7 +258,7 @@ function Recipient({ recipient }: { recipient: IRecipient }) {
       }`}
     >
       <a
-        href={getExplorerAddressLink(recipient.address, chainId!)}
+        href={getExplorerAddressLink(recipient.address, chainId)}
         target={'_blank noref'}
         className={'flex items-center space-x-2 hover:opacity-80'}
       >
@@ -302,7 +302,7 @@ function Split({ split }: { split: ISplit }) {
         </div>
         <div className={`flex items-center space-x-4`}>
           <a
-            href={getExplorerAddressLink(split.address!, chainId!)}
+            href={getExplorerAddressLink(split.address, chainId)}
             className={
               'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
             }

@@ -1,11 +1,11 @@
-import React from 'react'
+import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
-import Title from '../components/Title'
-import Layout from '../components/Layout'
-import Button from '../components/Button'
+import Title from 'components/Title'
+import Layout from 'components/Layout'
+import Button from 'components/Button'
 
 import {
   useEthers,
@@ -63,7 +63,7 @@ export default function Account(): JSX.Element {
           </div>
           <div className={'w-full grid grid-cols-1 md:grid-cols-3 gap-4'}>
             <a
-              href={getExplorerAddressLink(account!, chainId!)}
+              href={getExplorerAddressLink(account, chainId)}
               target="_blank"
               rel="noopener noreferrer"
               className={

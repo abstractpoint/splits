@@ -23,6 +23,7 @@ type IRecipient = {
 type ISplit = {
   address: string
   name: string
+  created_by: string
   current_funds: number
   recipients: IRecipient[]
 }
@@ -240,7 +241,7 @@ function VerifiedRecipient({
       <div className={''}>{resolveName}</div>
       <div
         className={
-          'text-xs tracking-wide font-semibold px-2 py-1 rounded-full bg-gray-100 bg-opacity-50'
+          'text-xs tracking-wide font-semibold px-2 py-1 rounded-full bg-gray-500 bg-opacity-5'
         }
       >
         {address.slice(0, 6)}
@@ -318,12 +319,8 @@ function Split({ split }: { split: ISplit }) {
                 : `bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600`
             } focus:outline-none transition`}
           >
-            {isCopied ? (
-              <Check size={16} strokeWidth={2.5} />
-            ) : (
-              <Copy size={16} strokeWidth={2.5} />
-            )}
-            <div>{isCopied ? 'Copied' : 'Copy'}</div>
+            {!isCopied && <Copy size={16} strokeWidth={2.5} />}
+            <div>{isCopied ? 'Copied!' : 'Copy'}</div>
           </button>
         </div>
       </div>
@@ -339,6 +336,15 @@ function Split({ split }: { split: ISplit }) {
             return <Recipient key={i.address} recipient={i} />
           })}
         </div>
+      </div>
+      <div className={'text-gray-400'}>
+        Created 23 days ago by{' '}
+        <a
+          className={'hover:opacity-80 transition'}
+          href={getExplorerAddressLink(split.address, chainId)}
+        >
+          {shortenAddress(split.created_by)}
+        </a>
       </div>
     </div>
   )

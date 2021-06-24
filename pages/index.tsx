@@ -301,17 +301,15 @@ function Split({ split }: { split: ISplit }) {
           {split.name}
         </div>
         <div className={`flex items-center space-x-4`}>
-          {chainId && (
-            <a
-              href={getExplorerAddressLink(split.address, chainId)}
-              className={
-                'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
-              }
-            >
-              <ExternalLink size={16} strokeWidth={2.5} />
-              <div>{split.address.substring(0, 6)}</div>
-            </a>
-          )}
+          <a
+            href={getExplorerAddressLink(split.address, chainId)}
+            className={
+              'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
+            }
+          >
+            <ExternalLink size={16} strokeWidth={2.5} />
+            <div>{split.address.substring(0, 6)}</div>
+          </a>
           <button
             onClick={() => copyToClipboard()}
             className={`px-2 py-1 rounded-xl font-medium flex items-center space-x-1 cursor-pointer ${

@@ -11,7 +11,7 @@ import {
   shortenAddress,
 } from '@usedapp/core'
 
-import { Check, Copy, ExternalLink } from 'react-feather'
+import { Copy, ExternalLink } from 'react-feather'
 
 type IRecipient = {
   address: string
@@ -23,7 +23,6 @@ type IRecipient = {
 type ISplit = {
   address: string
   name: string
-  created_by: string
   current_funds: number
   recipients: IRecipient[]
 }
@@ -302,15 +301,17 @@ function Split({ split }: { split: ISplit }) {
           {split.name}
         </div>
         <div className={`flex items-center space-x-4`}>
-          <a
-            href={getExplorerAddressLink(split.address, chainId)}
-            className={
-              'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
-            }
-          >
-            <ExternalLink size={16} strokeWidth={2.5} />
-            <div>{split.address.substring(0, 6)}</div>
-          </a>
+          {chainId && (
+            <a
+              href={getExplorerAddressLink(split.address, chainId)}
+              className={
+                'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
+              }
+            >
+              <ExternalLink size={16} strokeWidth={2.5} />
+              <div>{split.address.substring(0, 6)}</div>
+            </a>
+          )}
           <button
             onClick={() => copyToClipboard()}
             className={`px-2 py-1 rounded-xl font-medium flex items-center space-x-1 cursor-pointer ${
@@ -336,15 +337,6 @@ function Split({ split }: { split: ISplit }) {
             return <Recipient key={i.address} recipient={i} />
           })}
         </div>
-      </div>
-      <div className={'text-gray-400'}>
-        Created 23 days ago by{' '}
-        <a
-          className={'hover:opacity-80 transition'}
-          href={getExplorerAddressLink(split.address, chainId)}
-        >
-          {shortenAddress(split.created_by)}
-        </a>
       </div>
     </div>
   )

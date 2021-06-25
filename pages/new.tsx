@@ -111,7 +111,7 @@ export default function NewSplit(): JSX.Element {
     <Layout>
       <Title value="New Split | Splits" />
       <div className={'flex items-center justify-between'}>
-        <div className="text-4xl font-semibold text-gray-900">New Split</div>
+        <img src={'/splits_logo.png'} className={'w-10 h-10'} />
         <div className={'py-4 flex items-center space-x-4 text-xl'}>
           <Button color={'gray'} compact onClick={() => router.push('/')}>
             Close

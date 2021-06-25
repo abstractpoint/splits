@@ -371,9 +371,7 @@ export default function Home(): JSX.Element {
     <Layout>
       <Title value="Splits" />
       <div className={'flex items-center justify-between'}>
-        <div className="text-2xl md:text-4xl font-semibold text-gray-900">
-          Splits
-        </div>
+        <img src={'/splits_logo.png'} className={'w-10 h-10'} />
         <Menu />
       </div>
       <div className={'py-4 space-y-8'}>

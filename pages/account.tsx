@@ -42,7 +42,7 @@ export default function Account(): JSX.Element {
       <Layout>
         <Title value="Account | Splits" />
         <div className={'flex items-center justify-between'}>
-          <img src={'/splits_logo.png'} className={'w-10 h-10'} />
+          <img src={'/splits_logo.png'} className={'w-12 h-12'} />
           <div className={'py-4 flex items-center space-x-4 text-xl'}>
             <Button compact onClick={() => router.push('/')}>
               Close

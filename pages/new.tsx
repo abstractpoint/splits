@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import {
   useForm,
@@ -12,7 +12,6 @@ import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Button from 'components/Button'
 import ProgressBar from 'components/ProgressBar'
-import { Trash2 } from 'react-feather'
 import { round, sumBy, endsWith, isEmpty } from 'lodash'
 
 import { useEthers, shortenAddress } from '@usedapp/core'
@@ -76,30 +75,29 @@ export default function NewSplit(): JSX.Element {
     })
   }
 
+  // Determine amount remaining and split equally among all recipients.
+  const splitRemaining = () => {
+    const num = fields.length
+    const remaining = 100 - totalAllocated
+    fields.forEach((_, index) => {
+      const currentValue = getValues(`recipients.${index}.ownership`) || 0
+      return setValue(
+        `recipients.${index}.ownership`,
+        currentValue + round(remaining / num, 1),
+        {
+          shouldValidate: true,
+        },
+      )
+    })
+  }
+
   // Get contents from clipboard and paste into focused address field.
-  async function paste(index: number) {
-    const value = await navigator.clipboard.readText()
-    setValue(`recipients.${index}.address`, value, {
-      shouldValidate: true,
-    })
-  }
-
-  // Determine amount remaining and set the current ownership equal to that.
-  function maxOut(index: number) {
-    const remaining = totalAllocated <= 0.01 ? 99.9 : 100 - totalAllocated
-    const currentValue = getValues(`recipients.${index}.ownership`) || 0
-    const newValue = round(currentValue + remaining, 1)
-    setValue(`recipients.${index}.ownership`, newValue, {
-      shouldValidate: true,
-    })
-  }
-
-  // Set the current ownership equal to minimum (0.01).
-  function minOut(index: number) {
-    setValue(`recipients.${index}.ownership`, 0.01, {
-      shouldValidate: true,
-    })
-  }
+  // async function paste(index: number) {
+  //   const value = await navigator.clipboard.readText()
+  //   setValue(`recipients.${index}.address`, value, {
+  //     shouldValidate: true,
+  //   })
+  // }
 
   // Split can be created if: no errors, 2+ recipients, ownership allocated is 100%.
   const isComplete =
@@ -111,7 +109,7 @@ export default function NewSplit(): JSX.Element {
     <Layout>
       <Title value="New Split | Splits" />
       <div className={'flex items-center justify-between'}>
-        <img src={'/splits_logo.png'} className={'w-10 h-10'} />
+        <img src={'/splits_logo.png'} className={'w-12 h-12'} />
         <div className={'py-4 flex items-center space-x-4 text-xl'}>
           <Button color={'gray'} compact onClick={() => router.push('/')}>
             Close
@@ -125,14 +123,26 @@ export default function NewSplit(): JSX.Element {
       >
         <div className={'flex items-center justify-between mb-4 '}>
           <div className={'text-2xl font-medium'}>Recipients</div>
-          <Button
-            compact
-            color={'pink'}
-            type={'button'}
-            onClick={() => splitEqually()}
-          >
-            Split evenly
-          </Button>
+          <div className={'flex items-center'}>
+            <button
+              type={'button'}
+              onClick={() => splitEqually()}
+              className={
+                'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-l-lg'
+              }
+            >
+              Split evenly
+            </button>
+            <button
+              type={'button'}
+              onClick={() => splitRemaining()}
+              className={
+                'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-r-lg'
+              }
+            >
+              Split remaining
+            </button>
+          </div>
         </div>
         <div className={'space-y-6'}>
           {fields.map((field, index) => (
@@ -148,9 +158,7 @@ export default function NewSplit(): JSX.Element {
               lookupENS={lookupENS}
               numSplitAddresses={fields.length}
               totalAllocated={totalAllocated}
-              paste={paste}
-              maxOut={maxOut}
-              minOut={minOut}
+              // paste={paste}
             />
           ))}
         </div>
@@ -201,10 +209,8 @@ const SplitAddressEntry = ({
   lookupAddress,
   totalAllocated,
   numSplitAddresses,
-  paste,
-  maxOut,
-  minOut,
-}: {
+}: // paste,
+{
   index: number
   register: UseFormRegister<IRecipients>
   control: Control<IRecipients>
@@ -215,9 +221,7 @@ const SplitAddressEntry = ({
   lookupAddress: (address: string) => Promise<string | undefined>
   totalAllocated: number
   numSplitAddresses: number
-  paste: (index: number) => Promise<void>
-  maxOut: (index: number) => void
-  minOut: (index: number) => void
+  // paste: (index: number) => Promise<void>
 }): JSX.Element => {
   const recipient = useWatch({
     control,
@@ -277,25 +281,25 @@ const SplitAddressEntry = ({
     })()
   }, [recipient.address])
 
-  const InputButton = ({
-    onClick,
-    value,
-  }: {
-    onClick: MouseEventHandler
-    value: string
-  }) => {
-    return (
-      <button
-        type={'button'}
-        onClick={onClick}
-        className={
-          'px-3 py-1.5 rounded-full text-sm uppercase font-semibold bg-gray-100 text-gray-400 hover:text-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-300'
-        }
-      >
-        {value}
-      </button>
-    )
-  }
+  // const InputButton = ({
+  //   onClick,
+  //   value,
+  // }: {
+  //   onClick: MouseEventHandler
+  //   value: string
+  // }) => {
+  //   return (
+  //     <button
+  //       type={'button'}
+  //       onClick={onClick}
+  //       className={
+  //         'px-3 py-1.5 rounded-full text-sm uppercase font-semibold bg-gray-100 text-gray-400 hover:text-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-300'
+  //       }
+  //     >
+  //       {value}
+  //     </button>
+  //   )
+  // }
 
   function AddressInputMessage({
     message,
@@ -313,12 +317,12 @@ const SplitAddressEntry = ({
     <div className={'space-y-2 '}>
       <div
         className={
-          'shadow border border-gray-100 rounded-3xl overflow-hidden focus-within:ring-2 focus-within:ring-gray-200 grid grid-cols-1 md:grid-cols-1 text-lg transition divide-y divide-gray-100'
+          'border border-gray-300 rounded-3xl md:flex items-center text-lg focus-within:border-white focus-within:ring-4 focus-within:ring-purple-200 transition'
         }
       >
         <div
           className={
-            'relative flex items-center font-medium bg-transparent focus-within:bg-gray-50 transition'
+            'w-full rounded-3xl relative flex items-center font-medium bg-transparent transition focus-within:ring-2 focus-within:ring-purple-500'
           }
         >
           <input
@@ -326,15 +330,12 @@ const SplitAddressEntry = ({
             {...register(`recipients.${index}.address` as const, {
               required: {
                 value: true,
-                message: 'Address is required',
+                message: 'Required',
               },
               validate: validateAddress,
             })}
             className={`flex-grow bg-transparent py-5 px-4 focus:outline-none`}
           />
-          <div className={'flex items-center space-x-2 p-2'}>
-            <InputButton onClick={() => paste(index)} value={'Paste'} />
-          </div>
           <div
             className={
               'absolute bottom-1 left-4 font-semibold text-sm tracking-wide transition'
@@ -356,7 +357,7 @@ const SplitAddressEntry = ({
         </div>
         <div
           className={
-            'relative flex items-center font-medium bg-transparent focus-within:bg-gray-50 transition'
+            'w-full md:w-32 rounded-3xl relative flex items-center font-medium bg-transparent transition focus-within:ring-2 focus-within:ring-purple-500'
           }
         >
           <input
@@ -367,37 +368,22 @@ const SplitAddressEntry = ({
               valueAsNumber: true,
               required: {
                 value: true,
-                message: 'Ownership is required',
+                message: 'Required',
               },
               validate: (value) =>
                 (value && value <= 100 - totalAllocated + value) ||
-                `Cannot exceed ${round(100 - totalAllocated, 2)}`,
+                `Insufficient`,
               max: {
                 value: 99.99,
-                message: 'Cannot be above 99.9',
+                message: '99.9 max',
               },
               min: {
                 value: 0.01,
-                message: 'Cannot be below 0.1',
+                message: '0.1 min',
               },
             })}
             className={`w-full flex-1 bg-transparent py-5 px-4 focus:outline-none`}
           />
-          <div className={'flex items-center space-x-2 p-2'}>
-            <InputButton onClick={() => minOut(index)} value={'Min'} />
-            <InputButton onClick={() => maxOut(index)} value={'Max'} />
-            {numSplitAddresses > 2 && (
-              <button
-                type={'button'}
-                onClick={() => remove(index)}
-                className={
-                  'p-1.5 bg-red-50 rounded-full justify-center text-red-400 hover:text-red-500 transition focus:outline-none focus:ring-2 focus:ring-red-300'
-                }
-              >
-                <Trash2 />
-              </button>
-            )}
-          </div>
           <div
             className={
               'absolute bottom-1 left-4 font-semibold text-sm tracking-wide transition'
@@ -410,6 +396,14 @@ const SplitAddressEntry = ({
               />
             )}
           </div>
+        </div>
+        <div className={'p-2 flex justify-end'}>
+          <Button
+            onClick={() => remove(index)}
+            isDisabled={numSplitAddresses <= 2}
+          >
+            Remove
+          </Button>
         </div>
       </div>
     </div>

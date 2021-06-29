@@ -10,7 +10,7 @@ import {
   getExplorerAddressLink,
   shortenAddress,
 } from '@usedapp/core'
-
+import { filter, find, sumBy } from 'lodash'
 import { Copy, ExternalLink } from 'react-feather'
 
 type IRecipient = {
@@ -31,10 +31,10 @@ type ISplit = {
 const splits = [
   {
     address: '0x1022a225cd49fa3c73c9094730a16e5f70ff015b',
-    name: 'Gitcoin, ETHGlobal and Mint Fund Split',
-    created_by: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-    current_funds: 0,
-    total_funds: 1.28319,
+    name: 'This is a split!',
+    created_by: '0xc649fca6524014433aeeb926f26dddf984216322',
+    current_funds: 20,
+    total_funds: 30,
     recipients: [
       {
         address: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
@@ -50,16 +50,16 @@ const splits = [
     address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
     name: 'My first split',
     created_by: '0xbffb152b9392e38cddc275d818a3db7fe364596b',
-    current_funds: 3.77,
-    total_funds: 6.238,
+    current_funds: 0,
+    total_funds: 60,
     recipients: [
       {
         address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-        ownership: 50.0,
+        ownership: 90.0,
       },
       {
         address: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
-        ownership: 50.0,
+        ownership: 10.0,
       },
     ],
   },
@@ -67,8 +67,8 @@ const splits = [
     address: '0x8klas74kas8923lkKlahd',
     name: 'My first split',
     created_by: '0xcc3645f3d4b06c68e6d65dc0dbe6ae7a5503f3ad',
-    current_funds: 0.063,
-    total_funds: 344.834,
+    current_funds: 0,
+    total_funds: 300,
     recipients: [
       {
         address: '0xcc3645f3d4b06c68e6d65dc0dbe6ae7a5503f3ad',
@@ -87,8 +87,8 @@ const splits = [
   {
     address: '0xb1fc37d345ceba64746f2dd9ff983d663059c2a1',
     name: 'My first split',
-    created_by: '0xcc3645f3d4b06c68e6d65dc0dbe6ae7a5503f3ad',
-    current_funds: 0,
+    created_by: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
+    current_funds: 100,
     total_funds: 4.248,
     recipients: [
       {
@@ -110,9 +110,7 @@ const splits = [
 // Display the funds ready to claimed by user
 function ClaimFunds({ amount }: { amount: number }) {
   const { account } = useEthers()
-  // Calculate how much the account can claim
-  const claimableFunds = 1
-  if (account && claimableFunds > 0) {
+  if (account) {
     return (
       <div
         className={
@@ -124,7 +122,7 @@ function ClaimFunds({ amount }: { amount: number }) {
             'text-xl font-semibold text-white text-opacity-100 leading-tight'
           }
         >
-          You have {amount.toFixed(4)} ETH ready to claim.
+          You have {amount.toFixed(2)} ETH ready to claim.
         </div>
         <div className={'flex justify-between'}>
           <div className={'-space-y-px'}>
@@ -144,10 +142,10 @@ function ClaimFunds({ amount }: { amount: number }) {
           <button
             onClick={() => alert('Claim funds')}
             className={
-              'rounded-2xl bg-white bg-opacity-90 shadow px-4 py-2.5 font-semibold text-purple-500 hover:bg-opacity-100 focus:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-white transition'
+              'rounded-2xl bg-white bg-opacity-90 shadow px-4 py-2.5 font-semibold text-indigo-500 hover:bg-opacity-100 focus:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-white transition'
             }
           >
-            Claim Funds &rarr;
+            Claim Funds
           </button>
         </div>
       </div>
@@ -160,7 +158,7 @@ function DistributeFunds({ amount }: { amount: number }) {
   return (
     <div
       className={
-        'p-4 bg-blue-50 text-blue-500 font-medium rounded-3xl space-y-4 md:space-y-0 md:flex md:items-center'
+        'p-4 bg-blue-50 text-blue-500 font-medium rounded-xl space-y-4 md:space-y-0 md:flex md:items-center'
       }
     >
       <div className={'flex-grow'}>
@@ -190,59 +188,6 @@ function ErrorWrapper({ error }: { error: string }) {
       className={`fixed top-0 inset-x-0 bg-red-100 text-red-500 text-center p-1`}
     >
       {error}
-    </div>
-  )
-}
-
-function ConnectButton() {
-  const { activateBrowserWallet } = useEthers()
-  const [activateError, setActivateError] = useState<string>('')
-  const { error } = useEthers()
-  useEffect(() => {
-    if (error) {
-      setActivateError(error.message)
-      setTimeout(() => {
-        setActivateError('')
-      }, 3000)
-    }
-  }, [error])
-
-  const activate = async () => {
-    setActivateError('')
-    activateBrowserWallet()
-  }
-  return (
-    <>
-      {activateError != '' && <ErrorWrapper error={activateError} />}
-      <Button color={'blue'} compact onClick={() => activate()}>
-        Connect
-      </Button>
-    </>
-  )
-}
-
-function Menu() {
-  const router = useRouter()
-  const { account } = useEthers()
-
-  return (
-    <div className={'py-4 flex items-center space-x-2'}>
-      {account ? (
-        <>
-          <Button
-            color={'blue'}
-            compact
-            onClick={() => router.push('/account')}
-          >
-            Account
-          </Button>
-          <Button color={'purple'} compact onClick={() => router.push('/new')}>
-            New Split
-          </Button>
-        </>
-      ) : (
-        <ConnectButton />
-      )}
     </div>
   )
 }
@@ -360,11 +305,112 @@ function Split({ split }: { split: ISplit }) {
   )
 }
 
+function ConnectButton() {
+  const { activateBrowserWallet } = useEthers()
+  const [activateError, setActivateError] = useState<string>('')
+  const { error } = useEthers()
+  useEffect(() => {
+    if (error) {
+      setActivateError(error.message)
+      setTimeout(() => {
+        setActivateError('')
+      }, 3000)
+    }
+  }, [error])
+
+  const activate = async () => {
+    setActivateError('')
+    activateBrowserWallet()
+  }
+  return (
+    <>
+      {activateError != '' && <ErrorWrapper error={activateError} />}
+      <Button color={'blue'} compact onClick={() => activate()}>
+        Connect
+      </Button>
+    </>
+  )
+}
+
+function Menu() {
+  const router = useRouter()
+  const { account, deactivate } = useEthers()
+  const [isAccountOpen, setIsAccountOpen] = useState(false)
+  const onClick = () => setIsAccountOpen(!isAccountOpen)
+
+  const disconnectWallet = async () => {
+    deactivate()
+    setIsAccountOpen(false)
+  }
+
+  const [isCopied, setIsCopied] = useState<boolean>(false)
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(account || '')
+    setIsCopied(true)
+    setTimeout(() => {
+      setIsCopied(false)
+      setIsAccountOpen(false)
+    }, 800)
+  }
+
+  return (
+    <div className={'py-4 flex items-center space-x-4 relative'}>
+      {account ? (
+        <>
+          <Button color={'purple'} compact onClick={() => router.push('/new')}>
+            New Split
+          </Button>
+          <Button
+            color={'blue'}
+            isActive={isAccountOpen}
+            compact
+            onClick={onClick}
+          >
+            <img
+              src={makeBlockie(account)}
+              className={'w-4 h-4 rounded-lg mr-2'}
+            />
+            {account.slice(0, 6)}
+          </Button>
+          <nav
+            className={`bg-white p-4 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute right-0 top-16 font-medium text-gray-900 w-44 overflow-hidden ${
+              isAccountOpen ? `block z-50` : `hidden`
+            }`}
+          >
+            <Button
+              color={isCopied ? 'green' : 'gray'}
+              onClick={() => copyToClipboard()}
+            >
+              {isCopied ? 'Copied!' : 'Copy'}
+            </Button>
+            <Button color={'gray'} onClick={() => disconnectWallet()}>
+              Disconnect
+            </Button>
+          </nav>
+        </>
+      ) : (
+        <ConnectButton />
+      )}
+    </div>
+  )
+}
+
 export default function Home(): JSX.Element {
-  // Calculate how much the authenticated wallet can claim
-  let claimableFunds = 0
-  splits.forEach((split) => {
-    claimableFunds += split.current_funds
+  const { account } = useEthers()
+
+  const [selectedMenuItem, setSelectedMenuItem] = useState<number>(0)
+
+  // Return only the Splits that account is a recipient of
+  const splitsReceivingFrom = filter(splits, {
+    recipients: [{ address: account }],
+  })
+
+  // Return only the Splits that account is the creator of
+  const splitsCreated = filter(splits, { created_by: account })
+
+  const myClaimableFunds = sumBy(splitsReceivingFrom, (split) => {
+    const onlyMe = find(split.recipients, { address: account }) || 0
+    return (split.current_funds * onlyMe.ownership) / 100
   })
 
   return (
@@ -374,13 +420,59 @@ export default function Home(): JSX.Element {
         <img src={'/splits_logo.png'} className={'w-12 h-12'} />
         <Menu />
       </div>
-      <div className={'py-4 space-y-8'}>
-        {claimableFunds > 0 && <ClaimFunds amount={claimableFunds} />}
+      {account && (
+        <div className={'py-4 space-y-8'}>
+          {myClaimableFunds > 0 && <ClaimFunds amount={myClaimableFunds} />}
 
-        {splits.map((split) => {
-          return <Split key={split.address} split={split} />
-        })}
-      </div>
+          <div
+            className={
+              'grid grid-cols-1 md:grid-cols-2 md:gap-2 text-lg md:text-xl'
+            }
+          >
+            <button
+              onClick={() => setSelectedMenuItem(0)}
+              className={`p-2 font-semibold rounded-2xl transition ${
+                selectedMenuItem === 0
+                  ? `text-white bg-gray-900`
+                  : `text-gray-400 hover:text-gray-500`
+              } focus:outline-none`}
+            >
+              Splits I&apos;m Part Of
+            </button>
+            <button
+              onClick={() => setSelectedMenuItem(1)}
+              className={`p-2 font-semibold rounded-2xl transition ${
+                selectedMenuItem === 1
+                  ? `text-white bg-gray-900`
+                  : `text-gray-400 hover:text-gray-500`
+              } focus:outline-none`}
+            >
+              Splits I&apos;ve Created
+            </button>
+          </div>
+          {selectedMenuItem === 0 &&
+            splitsReceivingFrom.map((split) => {
+              return <Split key={split.address} split={split} />
+            })}
+          {selectedMenuItem === 1 &&
+            splitsCreated.map((split) => {
+              return <Split key={split.address} split={split} />
+            })}
+        </div>
+      )}
+      {!account && (
+        <div className={'py-4 space-y-8'}>
+          <div className={'text-5xl font-bold text-gray-900'}>
+            Divy up funds before receiving them.
+          </div>
+          <div className={'text-2xl text-gray-400'}>
+            Splits allows you to automatically route funds to a set of Ethereum
+            addresses, according to pre-defined ownership allocations. Whenever
+            funds are received by a Split, they&apos;re divvied up and routed to
+            the recipients, saving you the hassle of doing it manually.
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }

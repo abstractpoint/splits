@@ -1,17 +1,12 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
-import { useState, useEffect } from 'react'
-import makeBlockie from 'ethereum-blockies-base64'
+import Link from 'next/link'
+import { useState } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
+import Menu from 'components/Menu'
 import Button from 'components/Button'
-import {
-  useEthers,
-  getExplorerAddressLink,
-  shortenAddress,
-} from '@usedapp/core'
+import { useEthers, shortenAddress } from '@usedapp/core'
 import { filter, find, sumBy } from 'lodash'
-import { Copy, ExternalLink } from 'react-feather'
 
 type IRecipient = {
   address: string
@@ -24,6 +19,7 @@ type ISplit = {
   address: string
   name: string
   current_funds: number
+  total_funds: number
   recipients: IRecipient[]
 }
 
@@ -153,244 +149,62 @@ function ClaimFunds({ amount }: { amount: number }) {
   } else return null
 }
 
-function DistributeFunds({ amount }: { amount: number }) {
-  const { account } = useEthers()
+function SplitSummaryRecipient({ split }: { split: ISplit }) {
   return (
-    <div
-      className={
-        'p-4 bg-blue-50 text-blue-500 font-medium rounded-xl space-y-4 md:space-y-0 md:flex md:items-center'
-      }
-    >
-      <div className={'flex-grow'}>
-        Earn ${(amount * 0.01).toFixed(4)} ETH by making these funds claimable.
-      </div>
-      {/* Display CTA to distribute funds only if wallet is connected */}
-      {account ? (
-        <div>
-          <Button
-            compact
-            color={'blue'}
-            onClick={() => alert('Distribute funds')}
-          >
-            Distribute
-          </Button>
+    <div className={'p-4 shadow border border-gray-100 rounded-3xl space-y-4'}>
+      <div className={'flex items-center justify-between'}>
+        <div className={'text-lg font-medium text-gray-400'}>
+          {shortenAddress(split.address)}
         </div>
-      ) : (
-        <ConnectButton />
-      )}
-    </div>
-  )
-}
-
-function ErrorWrapper({ error }: { error: string }) {
-  return (
-    <div
-      className={`fixed top-0 inset-x-0 bg-red-100 text-red-500 text-center p-1`}
-    >
-      {error}
-    </div>
-  )
-}
-
-// Display different address UI if recipient is verified (ENS etc)
-function VerifiedRecipient({
-  address,
-  resolveName,
-}: {
-  address: string
-  resolveName: string
-}) {
-  return (
-    <div className={'flex items-center space-x-2 font-medium'}>
-      <div className={''}>{resolveName}</div>
-      <div
-        className={
-          'text-xs tracking-wide font-semibold px-2 py-1 rounded-full bg-gray-500 bg-opacity-5'
-        }
-      >
-        {address.slice(0, 6)}
       </div>
-    </div>
-  )
-}
-
-// Display each receipient as a line item with avatar, address, ownership
-function Recipient({ recipient }: { recipient: IRecipient }) {
-  const { account, chainId } = useEthers()
-  return (
-    <div
-      className={`flex items-center justify-between p-2 rounded-lg odd:bg-gray-50 font-medium ${
-        account === recipient.address ? `text-green-500` : `text-gray-900`
-      }`}
-    >
-      <a
-        href={chainId && getExplorerAddressLink(recipient.address, chainId)}
-        className={'flex items-center space-x-2 hover:opacity-80'}
-      >
-        <img
-          src={makeBlockie(recipient.address)}
-          className={'w-6 h-6 rounded-full'}
-        />
-        <div>
-          {account === recipient.address ? (
-            <VerifiedRecipient
-              address={recipient.address}
-              resolveName={'You'}
-            />
-          ) : (
-            shortenAddress(recipient.address)
-          )}
+      <div className={'text-xl font-semibold'}>
+        You receive 50% of this split.
+      </div>
+      <div className={'grid grid-cols-2 gap-4'}>
+        <div className={'-space-y-1'}>
+          <div className={'text-2xl text-gray-900 font-semibold'}>
+            {split.current_funds.toFixed(2)} ETH
+          </div>
+          <div className={'uppercase text-sm text-gray-400 font-semibold'}>
+            Waiting to be distributed
+          </div>
         </div>
-      </a>
-      <div className={''}>{recipient.ownership?.toFixed(1)}%</div>
+        <div className={'-space-y-1'}>
+          <div className={'text-2xl text-gray-900 font-semibold'}>
+            {split.total_funds.toFixed(2)} ETH
+          </div>
+          <div className={'uppercase text-sm text-gray-400 font-semibold'}>
+            Your lifetime earnings
+          </div>
+        </div>
+      </div>
+      <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
+        {/* This is not a good way to do this */}
+        <Button compact onClick={() => undefined} color={'blue'}>
+          View Split Details
+        </Button>
+      </Link>
     </div>
   )
 }
 
-function Split({ split }: { split: ISplit }) {
-  const { chainId } = useEthers()
-  const [isCopied, setIsCopied] = useState<boolean>(false)
-
-  function copyToClipboard() {
-    navigator.clipboard.writeText(split.address || '')
-    setIsCopied(true)
-    setTimeout(() => {
-      setIsCopied(false)
-    }, 800)
-  }
-
+function SplitSummaryCreator({ split }: { split: ISplit }) {
   return (
     <div className={'p-4 shadow border border-gray-100 rounded-3xl space-y-6'}>
-      <div className={'space-y-2'}>
-        <div className={'text-2xl font-semibold text-gray-900'}>
-          {split.name}
-        </div>
-        <div className={`flex items-center space-x-4`}>
-          <a
-            href={chainId && getExplorerAddressLink(split.address, chainId)}
-            className={
-              'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
-            }
-          >
-            <ExternalLink size={16} strokeWidth={2.5} />
-            <div>{split.address.substring(0, 6)}</div>
-          </a>
-          <button
-            onClick={() => copyToClipboard()}
-            className={`px-2 py-1 rounded-xl font-medium flex items-center space-x-1 cursor-pointer ${
-              isCopied
-                ? `text-green-400 bg-green-50`
-                : `bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600`
-            } focus:outline-none transition`}
-          >
-            {!isCopied && <Copy size={16} strokeWidth={2.5} />}
-            <div>{isCopied ? 'Copied!' : 'Copy'}</div>
-          </button>
-        </div>
-      </div>
-      {split.current_funds > 0 && (
-        <DistributeFunds amount={split.current_funds} />
-      )}
-      <div className={'space-y-2'}>
-        <div className={'text-xl font-medium'}>
-          {split.recipients.length} Recipients
-        </div>
-        <div className={'space-y-1'}>
-          {split.recipients.map((i) => {
-            return <Recipient key={i.address} recipient={i} />
-          })}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ConnectButton() {
-  const { activateBrowserWallet } = useEthers()
-  const [activateError, setActivateError] = useState<string>('')
-  const { error } = useEthers()
-  useEffect(() => {
-    if (error) {
-      setActivateError(error.message)
-      setTimeout(() => {
-        setActivateError('')
-      }, 3000)
-    }
-  }, [error])
-
-  const activate = async () => {
-    setActivateError('')
-    activateBrowserWallet()
-  }
-  return (
-    <>
-      {activateError != '' && <ErrorWrapper error={activateError} />}
-      <Button color={'blue'} compact onClick={() => activate()}>
-        Connect
-      </Button>
-    </>
-  )
-}
-
-function Menu() {
-  const router = useRouter()
-  const { account, deactivate } = useEthers()
-  const [isAccountOpen, setIsAccountOpen] = useState(false)
-  const onClick = () => setIsAccountOpen(!isAccountOpen)
-
-  const disconnectWallet = async () => {
-    deactivate()
-    setIsAccountOpen(false)
-  }
-
-  const [isCopied, setIsCopied] = useState<boolean>(false)
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(account || '')
-    setIsCopied(true)
-    setTimeout(() => {
-      setIsCopied(false)
-      setIsAccountOpen(false)
-    }, 800)
-  }
-
-  return (
-    <div className={'py-4 flex items-center space-x-4 relative'}>
-      {account ? (
-        <>
-          <Button color={'purple'} compact onClick={() => router.push('/new')}>
-            New Split
-          </Button>
-          <Button
-            color={'blue'}
-            isActive={isAccountOpen}
-            compact
-            onClick={onClick}
-          >
-            <img
-              src={makeBlockie(account)}
-              className={'w-4 h-4 rounded-lg mr-2'}
-            />
-            {account.slice(0, 6)}
-          </Button>
-          <nav
-            className={`bg-white p-4 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute right-0 top-16 font-medium text-gray-900 w-44 overflow-hidden ${
-              isAccountOpen ? `block z-50` : `hidden`
-            }`}
-          >
-            <Button
-              color={isCopied ? 'green' : 'gray'}
-              onClick={() => copyToClipboard()}
-            >
-              {isCopied ? 'Copied!' : 'Copy'}
-            </Button>
-            <Button color={'gray'} onClick={() => disconnectWallet()}>
-              Disconnect
-            </Button>
-          </nav>
-        </>
-      ) : (
-        <ConnectButton />
-      )}
+      <Link
+        href={`/splits/[split]`}
+        as={`/splits/${split.address}`}
+        key={split.address}
+      >
+        <a
+          className={
+            'text-xl font-semibold text-gray-900 hover:text-blue-500 cursor-pointer transition'
+          }
+        >
+          Split {shortenAddress(split.address)}
+        </a>
+      </Link>
+      <div>{split.address}</div>
     </div>
   )
 }
@@ -416,10 +230,7 @@ export default function Home(): JSX.Element {
   return (
     <Layout>
       <Title value="Splits" />
-      <div className={'flex items-center justify-between'}>
-        <img src={'/splits_logo.png'} className={'w-12 h-12'} />
-        <Menu />
-      </div>
+      <Menu />
       {account && (
         <div className={'py-4 space-y-8'}>
           {myClaimableFunds > 0 && <ClaimFunds amount={myClaimableFunds} />}
@@ -437,7 +248,7 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Splits I&apos;m Part Of
+              Splits You&apos;re Part Of
             </button>
             <button
               onClick={() => setSelectedMenuItem(1)}
@@ -447,29 +258,29 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Splits I&apos;ve Created
+              Splits You&apos;ve Created
             </button>
           </div>
           {selectedMenuItem === 0 &&
             splitsReceivingFrom.map((split) => {
-              return <Split key={split.address} split={split} />
+              return <SplitSummaryRecipient key={split.address} split={split} />
             })}
           {selectedMenuItem === 1 &&
             splitsCreated.map((split) => {
-              return <Split key={split.address} split={split} />
+              return <SplitSummaryCreator key={split.address} split={split} />
             })}
         </div>
       )}
       {!account && (
-        <div className={'py-4 space-y-8'}>
+        <div className={'pt-8 pb-4 space-y-8'}>
           <div className={'text-5xl font-bold text-gray-900'}>
             Divy up funds before receiving them.
           </div>
           <div className={'text-2xl text-gray-400'}>
             Splits allows you to automatically route funds to a set of Ethereum
             addresses, according to pre-defined ownership allocations. Whenever
-            funds are received by a Split, they&apos;re divvied up and routed to
-            the recipients, saving you the hassle of doing it manually.
+            funds are received by a Split, they&apos;re automatically divvied up
+            and routed to the recipients.
           </div>
         </div>
       )}

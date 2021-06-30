@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import { useRouter } from 'next/router'
 import {
   useForm,
   useFieldArray,
@@ -11,6 +10,7 @@ import {
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Button from 'components/Button'
+import Menu from 'components/Menu'
 import ProgressBar from 'components/ProgressBar'
 import { round, sumBy, endsWith, isEmpty } from 'lodash'
 
@@ -103,19 +103,11 @@ export default function NewSplit(): JSX.Element {
   const isComplete =
     isEmpty(errors) && fields.length >= 2 && totalAllocated === 100
 
-  const router = useRouter()
   // TODO: AD validate, convert ownership properly
   return (
     <Layout>
       <Title value="New Split | Splits" />
-      <div className={'flex items-center justify-between'}>
-        <img src={'/splits_logo.png'} className={'w-12 h-12'} />
-        <div className={'py-4 flex items-center space-x-4 text-xl'}>
-          <Button color={'gray'} compact onClick={() => router.push('/')}>
-            Close
-          </Button>
-        </div>
-      </div>
+      <Menu />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className={'py-4 w-full'}

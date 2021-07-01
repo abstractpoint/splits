@@ -8,6 +8,7 @@ import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
 import { useEthers } from '@usedapp/core'
 import { filter, find, sumBy } from 'lodash'
 import makeBlockie from 'ethereum-blockies-base64'
+import { HelpCircle } from 'react-feather'
 
 type IRecipient = {
   address: string
@@ -231,52 +232,68 @@ export default function Home(): JSX.Element {
           <div className={'mb-8 grid grid-cols-2 md:grid-cols-3 gap-4'}>
             <button
               onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
-              className={`-space-y-1 p-4 rounded-3xl ${
-                isEarnedTooltipOpen ? `bg-gray-50` : `hover:bg-gray-50`
-              } text-left focus:outline-none relative`}
+              className={`-space-y-1 p-4 rounded-3xl text-left focus:outline-none relative group`}
             >
-              <div className={'text-lg font-medium text-gray-400'}>
-                Total Earned
+              <div
+                className={
+                  'text-lg font-medium text-gray-400 flex items-center'
+                }
+              >
+                My Earnings{' '}
+                <HelpCircle
+                  size={18}
+                  className={
+                    'ml-1 text-gray-200 group-hover:text-gray-300 transition'
+                  }
+                />
               </div>
               <div className={'text-2xl font-semibold text-gray-900'}>
                 35.00 ETH
               </div>
               <nav
                 ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-3xl absolute left-0 top-24 font-medium text-white w-64 overflow-hidden blurred ${
+                className={`bg-black opacity-80 p-4 rounded-3xl absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
                   isEarnedTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                Total Earned represents your lifetime earnings across all of the
+                My Earnings is how much you&apos;ve received across all the
                 splits you&apos;re a recipient of.
               </nav>
             </button>
             <button
               onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
-              className={`-space-y-1 p-4 rounded-3xl ${
-                isBalanceTooltipOpen ? `bg-gray-50` : `hover:bg-gray-50`
-              } text-left focus:outline-none relative`}
+              className={`-space-y-1 p-4 rounded-3xl text-left focus:outline-none relative group`}
             >
-              <div className={'text-lg font-medium text-gray-400'}>
-                Current Balance
+              <div
+                className={
+                  'text-lg font-medium text-gray-400 flex items-center'
+                }
+              >
+                My Balance{' '}
+                <HelpCircle
+                  size={18}
+                  className={
+                    'ml-1 text-gray-200 group-hover:text-gray-300 transition'
+                  }
+                />
               </div>
               <div className={'text-2xl font-semibold text-gray-900'}>
                 35.00 ETH
               </div>
               <nav
                 ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-3xl absolute left-0 top-24 font-medium text-white w-64 overflow-hidden blurred ${
+                className={`bg-black opacity-80 p-4 rounded-3xl absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
                   isBalanceTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                Current Balance is how much has been allocated to you, but
-                isn&apos;t yet ready to be claimed.
+                My Balance is how much has been allocated to you, but isn&apos;t
+                yet ready to be claimed.
               </nav>
             </button>
             <button
               onClick={() => alert('Claim funds')}
               className={
-                'p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 transition focus:outline-none transform hover:scale-105'
+                'p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 hover:opacity-90 transition focus:outline-none'
               }
             >
               <div className={'-space-y-1'}>

@@ -160,7 +160,7 @@ export default function SplitDetail({
             color={'purple'}
             onClick={() => console.log('Send funds')}
           >
-            Send Funds
+            Send Funds To Split
           </Button>
         </div>
         <div className={`flex items-center space-x-4 relative`}>

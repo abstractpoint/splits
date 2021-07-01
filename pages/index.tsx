@@ -4,9 +4,9 @@ import { useState } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
-import Button from 'components/Button'
 import { useEthers, shortenAddress } from '@usedapp/core'
 import { filter, find, sumBy } from 'lodash'
+import makeBlockie from 'ethereum-blockies-base64'
 
 type IRecipient = {
   address: string
@@ -110,7 +110,7 @@ function ClaimFunds({ amount }: { amount: number }) {
     return (
       <div
         className={
-          'p-4 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl shadow-lg space-y-4'
+          'mb-8 p-4 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl shadow-lg space-y-4'
         }
       >
         <div
@@ -149,63 +149,93 @@ function ClaimFunds({ amount }: { amount: number }) {
   } else return null
 }
 
-function SplitSummaryRecipient({ split }: { split: ISplit }) {
+function LabelValue({
+  label,
+  value,
+  isRightAligned,
+}: {
+  label: string
+  value: string
+  isRightAligned?: boolean
+}): JSX.Element {
   return (
-    <div className={'p-4 shadow border border-gray-100 rounded-3xl space-y-4'}>
-      <div className={'flex items-center justify-between'}>
-        <div className={'text-lg font-medium text-gray-400'}>
-          {shortenAddress(split.address)}
-        </div>
-      </div>
-      <div className={'text-xl font-semibold'}>
-        You receive 50% of this split.
-      </div>
-      <div className={'grid grid-cols-2 gap-4'}>
-        <div className={'-space-y-1'}>
-          <div className={'text-2xl text-gray-900 font-semibold'}>
-            {split.current_funds.toFixed(2)} ETH
-          </div>
-          <div className={'uppercase text-sm text-gray-400 font-semibold'}>
-            Waiting to be distributed
-          </div>
-        </div>
-        <div className={'-space-y-1'}>
-          <div className={'text-2xl text-gray-900 font-semibold'}>
-            {split.total_funds.toFixed(2)} ETH
-          </div>
-          <div className={'uppercase text-sm text-gray-400 font-semibold'}>
-            Your lifetime earnings
-          </div>
-        </div>
-      </div>
-      <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
-        {/* This is not a good way to do this */}
-        <Button compact onClick={() => undefined} color={'blue'}>
-          View Split Details
-        </Button>
-      </Link>
+    <div className={`-space-y-1 ${isRightAligned && `text-right`}`}>
+      <div className={'font-medium text-gray-400'}>{label}</div>
+      <div className={'text-lg font-semibold text-gray-900'}>{value}</div>
     </div>
+  )
+}
+
+function SplitSummaryRecipient({ split }: { split: ISplit }) {
+  const { account } = useEthers()
+  const onlyMe = find(split.recipients, { address: account }) || 0
+  return (
+    <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
+      <div
+        className={
+          'p-4 shadow border border-gray-100 rounded-3xl space-y-2 cursor-pointer hover:shadow-md hover:border-gray-200 transition'
+        }
+      >
+        <div className={'flex items-center space-x-4'}>
+          <div>
+            <img
+              src={makeBlockie(split.address)}
+              className={'w-10 h-10 rounded-xl'}
+            />
+          </div>
+          <div className={'w-full'}>
+            <div className={'w-full grid grid-cols-3 gap-4'}>
+              <LabelValue label={'Receiving'} value={`${onlyMe.ownership}%`} />
+              <LabelValue
+                label={'Earned'}
+                value={`${split.total_funds.toFixed(2)} ETH`}
+              />
+              <LabelValue
+                label={'Balance'}
+                value={`${split.current_funds.toFixed(2)} ETH`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
   )
 }
 
 function SplitSummaryCreator({ split }: { split: ISplit }) {
   return (
-    <div className={'p-4 shadow border border-gray-100 rounded-3xl space-y-6'}>
-      <Link
-        href={`/splits/[split]`}
-        as={`/splits/${split.address}`}
-        key={split.address}
+    <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
+      <div
+        className={
+          'p-4 shadow border border-gray-100 rounded-3xl space-y-2 cursor-pointer hover:shadow-md hover:border-gray-200 transition'
+        }
       >
-        <a
-          className={
-            'text-xl font-semibold text-gray-900 hover:text-blue-500 cursor-pointer transition'
-          }
-        >
-          Split {shortenAddress(split.address)}
-        </a>
-      </Link>
-      <div>{split.address}</div>
-    </div>
+        <div className={'flex items-center space-x-4'}>
+          <div>
+            <img
+              src={makeBlockie(split.address)}
+              className={'w-10 h-10 rounded-xl'}
+            />
+          </div>
+          <div className={'w-full'}>
+            <div className={'w-full grid grid-cols-3 gap-4'}>
+              <LabelValue
+                label={'Recipients'}
+                value={`${split.recipients.length}`}
+              />
+              <LabelValue
+                label={'Distributed'}
+                value={`${split.total_funds.toFixed(2)} ETH`}
+              />
+              <LabelValue
+                label={'Balance'}
+                value={`${split.current_funds.toFixed(2)} ETH`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
   )
 }
 
@@ -232,33 +262,29 @@ export default function Home(): JSX.Element {
       <Title value="Splits" />
       <Menu />
       {account && (
-        <div className={'py-4 space-y-8'}>
+        <div className={'py-4 space-y-4'}>
           {myClaimableFunds > 0 && <ClaimFunds amount={myClaimableFunds} />}
 
-          <div
-            className={
-              'grid grid-cols-1 md:grid-cols-2 md:gap-2 text-lg md:text-xl'
-            }
-          >
+          <div className={'flex items-center space-x-4 text-lg md:text-xl'}>
             <button
               onClick={() => setSelectedMenuItem(0)}
-              className={`p-2 font-semibold rounded-2xl transition ${
+              className={`p-2 font-semibold transition ${
                 selectedMenuItem === 0
-                  ? `text-white bg-gray-900`
+                  ? `text-gray-900`
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Splits You&apos;re Part Of
+              Receiving From
             </button>
             <button
               onClick={() => setSelectedMenuItem(1)}
-              className={`p-2 font-semibold rounded-2xl transition ${
+              className={`p-2 font-semibold transition ${
                 selectedMenuItem === 1
-                  ? `text-white bg-gray-900`
+                  ? `text-gray-900`
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Splits You&apos;ve Created
+              Created Splits
             </button>
           </div>
           {selectedMenuItem === 0 &&

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Title from 'components/Title'
+import Link from 'next/link'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
 import SplitDetail from 'components/SplitDetail'
@@ -27,7 +28,16 @@ export default function Split(): JSX.Element {
     <Layout>
       <Title value="Split | Splits" />
       <Menu />
-      <div className={'py-4 space-y-8'}>
+      <div className={'py-4 space-y-4'}>
+        <Link href={'/'}>
+          <a
+            className={
+              'font-semibold text-lg text-gray-400 hover:text-gray-600 transition'
+            }
+          >
+            &larr; Back
+          </a>
+        </Link>
         <SplitDetail split={split} />
       </div>
     </Layout>

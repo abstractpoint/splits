@@ -7,6 +7,7 @@ import {
   UseFormSetValue,
   UseFormRegister,
 } from 'react-hook-form'
+import Link from 'next/link'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Button from 'components/Button'
@@ -108,84 +109,95 @@ export default function NewSplit(): JSX.Element {
     <Layout>
       <Title value="New Split | Splits" />
       <Menu />
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={'py-4 w-full'}
-        autoComplete={'off'}
-      >
-        <div className={'flex items-center justify-between mb-4 '}>
-          <div className={'text-2xl font-medium'}>Recipients</div>
-          <div className={'flex items-center'}>
-            <button
-              type={'button'}
-              onClick={() => splitEqually()}
-              className={
-                'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-l-lg'
-              }
-            >
-              Split evenly
-            </button>
-            <button
-              type={'button'}
-              onClick={() => splitRemaining()}
-              className={
-                'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-r-lg'
-              }
-            >
-              Split remaining
-            </button>
+      <div className={'py-4 space-y-4'}>
+        <Link href={'/'}>
+          <a
+            className={
+              'font-semibold text-lg text-gray-400 hover:text-gray-600 transition'
+            }
+          >
+            &larr; Back
+          </a>
+        </Link>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={'w-full'}
+          autoComplete={'off'}
+        >
+          <div className={'flex items-center justify-between mb-4 '}>
+            <div className={'text-2xl font-medium'}>Recipients</div>
+            <div className={'flex items-center'}>
+              <button
+                type={'button'}
+                onClick={() => splitEqually()}
+                className={
+                  'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-l-lg'
+                }
+              >
+                Split evenly
+              </button>
+              <button
+                type={'button'}
+                onClick={() => splitRemaining()}
+                className={
+                  'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-r-lg'
+                }
+              >
+                Split remaining
+              </button>
+            </div>
           </div>
-        </div>
-        <div className={'space-y-6'}>
-          {fields.map((field, index) => (
-            <SplitAddressEntry
-              key={field.id}
-              index={index}
-              register={register}
-              control={control}
-              setValue={setValue}
-              errors={errors}
-              remove={remove}
-              lookupAddress={lookupAddress}
-              lookupENS={lookupENS}
-              numSplitAddresses={fields.length}
-              totalAllocated={totalAllocated}
-              // paste={paste}
+          <div className={'space-y-6'}>
+            {fields.map((field, index) => (
+              <SplitAddressEntry
+                key={field.id}
+                index={index}
+                register={register}
+                control={control}
+                setValue={setValue}
+                errors={errors}
+                remove={remove}
+                lookupAddress={lookupAddress}
+                lookupENS={lookupENS}
+                numSplitAddresses={fields.length}
+                totalAllocated={totalAllocated}
+                // paste={paste}
+              />
+            ))}
+          </div>
+          <div className={'py-4'}>
+            <ProgressBar
+              minLabel={'Allocated'}
+              maxLabel={'Remaining'}
+              fill={totalAllocated}
+              currentAmount={round(totalAllocated, 1)}
+              maxAmount={round(100 - totalAllocated, 1)}
+              unit={'%'}
+              isError={totalAllocated > 100}
             />
-          ))}
-        </div>
-        <div className={'py-4'}>
-          <ProgressBar
-            minLabel={'Allocated'}
-            maxLabel={'Remaining'}
-            fill={totalAllocated}
-            currentAmount={round(totalAllocated, 1)}
-            maxAmount={round(100 - totalAllocated, 1)}
-            unit={'%'}
-            isError={totalAllocated > 100}
-          />
-        </div>
+          </div>
 
-        <div className={'grid grid-cols-2 gap-4'}>
-          <Button
-            color={'gray'}
-            type={'button'}
-            onClick={() => {
-              append({ address: '', ownership: 0 })
-            }}
-          >
-            Add Recipient
-          </Button>
-          <Button
-            isDisabled={!isComplete}
-            onClick={() => handleSubmit(onSubmit)}
-            type={'submit'}
-            color={'purple'}
-          >
-            Create Split
-          </Button>
-        </div>
-      </form>
+          <div className={'grid grid-cols-2 gap-4'}>
+            <Button
+              color={'gray'}
+              type={'button'}
+              onClick={() => {
+                append({ address: '', ownership: 0 })
+              }}
+            >
+              Add Recipient
+            </Button>
+            <Button
+              isDisabled={!isComplete}
+              onClick={() => handleSubmit(onSubmit)}
+              type={'submit'}
+              color={'purple'}
+            >
+              Create Split
+            </Button>
+          </div>
+        </form>
+      </div>
     </Layout>
   )
 }

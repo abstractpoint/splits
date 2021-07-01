@@ -24,7 +24,7 @@ export default function Split(): JSX.Element {
   return (
     <div className={'p-1'}>
       <Title value="Splits" />
-      <SplitDetail split={split} />
+      <SplitDetail split={split} isEmbedded />
     </div>
   )
 }

@@ -9,3 +9,8 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+.blurred {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}

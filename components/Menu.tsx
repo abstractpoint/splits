@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import makeBlockie from 'ethereum-blockies-base64'
 import Button from 'components/Button'
 import { useEthers } from '@usedapp/core'
+import { useDetectOutsideClick } from './useDetectOutsideClick'
 
 function ErrorWrapper({ error }: { error: string }) {
   return (
@@ -46,7 +47,12 @@ function ConnectButton() {
 export default function Menu(): JSX.Element {
   const router = useRouter()
   const { account, deactivate } = useEthers()
-  const [isAccountOpen, setIsAccountOpen] = useState(false)
+
+  const dropdownRef = useRef(null)
+  const [isAccountOpen, setIsAccountOpen] = useDetectOutsideClick(
+    dropdownRef,
+    false,
+  )
 
   const disconnectWallet = async () => {
     deactivate()
@@ -95,7 +101,8 @@ export default function Menu(): JSX.Element {
               {account.slice(0, 6)}
             </Button>
             <nav
-              className={`bg-white p-4 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute right-0 top-12 font-medium text-gray-900 w-56 overflow-hidden ${
+              ref={dropdownRef}
+              className={`bg-white p-2 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute right-0 top-12 font-medium text-gray-900 w-56 overflow-hidden ${
                 isAccountOpen ? `block z-50` : `hidden`
               }`}
             >

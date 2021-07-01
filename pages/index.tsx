@@ -1,10 +1,11 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
-import { useEthers, shortenAddress } from '@usedapp/core'
+import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
+import { useEthers } from '@usedapp/core'
 import { filter, find, sumBy } from 'lodash'
 import makeBlockie from 'ethereum-blockies-base64'
 
@@ -103,52 +104,6 @@ const splits = [
   },
 ]
 
-// Display the funds ready to claimed by user
-function ClaimFunds({ amount }: { amount: number }) {
-  const { account } = useEthers()
-  if (account) {
-    return (
-      <div
-        className={
-          'mb-8 p-4 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl shadow-lg space-y-4'
-        }
-      >
-        <div
-          className={
-            'text-xl font-semibold text-white text-opacity-100 leading-tight'
-          }
-        >
-          You have {amount.toFixed(2)} ETH ready to claim.
-        </div>
-        <div className={'flex justify-between'}>
-          <div className={'-space-y-px'}>
-            <div
-              className={
-                'font-medium text-white text-opacity-40 text-xs uppercase tracking-wider'
-              }
-            >
-              Account
-            </div>
-            <div
-              className={'font-semibold text-white text-opacity-100 text-lg'}
-            >
-              {account.substring(0, 6)}
-            </div>
-          </div>
-          <button
-            onClick={() => alert('Claim funds')}
-            className={
-              'rounded-2xl bg-white bg-opacity-90 shadow px-4 py-2.5 font-semibold text-indigo-500 hover:bg-opacity-100 focus:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-white transition'
-            }
-          >
-            Claim Funds
-          </button>
-        </div>
-      </div>
-    )
-  } else return null
-}
-
 function LabelValue({
   label,
   value,
@@ -173,7 +128,7 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
         className={
-          'p-4 shadow border border-gray-100 rounded-3xl space-y-2 cursor-pointer hover:shadow-md hover:border-gray-200 transition'
+          'p-4 odd:bg-gray-50 rounded-3xl space-y-2 cursor-pointer hover:opacity-80 transition'
         }
       >
         <div className={'flex items-center space-x-4'}>
@@ -207,7 +162,7 @@ function SplitSummaryCreator({ split }: { split: ISplit }) {
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
         className={
-          'p-4 shadow border border-gray-100 rounded-3xl space-y-2 cursor-pointer hover:shadow-md hover:border-gray-200 transition'
+          'p-4 odd:bg-gray-50 rounded-3xl space-y-2 cursor-pointer hover:opacity-80 transition'
         }
       >
         <div className={'flex items-center space-x-4'}>
@@ -244,6 +199,16 @@ export default function Home(): JSX.Element {
 
   const [selectedMenuItem, setSelectedMenuItem] = useState<number>(0)
 
+  const dropdownRef = useRef(null)
+  const [isEarnedTooltipOpen, setIsEarnedTooltipOpen] = useDetectOutsideClick(
+    dropdownRef,
+    false,
+  )
+  const [isBalanceTooltipOpen, setIsBalanceTooltipOpen] = useDetectOutsideClick(
+    dropdownRef,
+    false,
+  )
+
   // Return only the Splits that account is a recipient of
   const splitsReceivingFrom = filter(splits, {
     recipients: [{ address: account }],
@@ -263,9 +228,71 @@ export default function Home(): JSX.Element {
       <Menu />
       {account && (
         <div className={'py-4 space-y-4'}>
-          {myClaimableFunds > 0 && <ClaimFunds amount={myClaimableFunds} />}
+          <div className={'mb-8 grid grid-cols-2 md:grid-cols-3 gap-4'}>
+            <button
+              onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
+              className={`-space-y-1 p-4 rounded-3xl ${
+                isEarnedTooltipOpen ? `bg-gray-50` : `hover:bg-gray-50`
+              } text-left focus:outline-none relative`}
+            >
+              <div className={'text-lg font-medium text-gray-400'}>
+                Total Earned
+              </div>
+              <div className={'text-2xl font-semibold text-gray-900'}>
+                35.00 ETH
+              </div>
+              <nav
+                ref={dropdownRef}
+                className={`bg-black opacity-80 p-4 rounded-3xl absolute left-0 top-24 font-medium text-white w-64 overflow-hidden blurred ${
+                  isEarnedTooltipOpen ? `block z-50` : `hidden`
+                }`}
+              >
+                Total Earned represents your lifetime earnings across all of the
+                splits you&apos;re a recipient of.
+              </nav>
+            </button>
+            <button
+              onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
+              className={`-space-y-1 p-4 rounded-3xl ${
+                isBalanceTooltipOpen ? `bg-gray-50` : `hover:bg-gray-50`
+              } text-left focus:outline-none relative`}
+            >
+              <div className={'text-lg font-medium text-gray-400'}>
+                Current Balance
+              </div>
+              <div className={'text-2xl font-semibold text-gray-900'}>
+                35.00 ETH
+              </div>
+              <nav
+                ref={dropdownRef}
+                className={`bg-black opacity-80 p-4 rounded-3xl absolute left-0 top-24 font-medium text-white w-64 overflow-hidden blurred ${
+                  isBalanceTooltipOpen ? `block z-50` : `hidden`
+                }`}
+              >
+                Current Balance is how much has been allocated to you, but
+                isn&apos;t yet ready to be claimed.
+              </nav>
+            </button>
+            <button
+              onClick={() => alert('Claim funds')}
+              className={
+                'p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 transition focus:outline-none transform hover:scale-105'
+              }
+            >
+              <div className={'-space-y-1'}>
+                <div
+                  className={'text-lg font-medium text-white text-opacity-60'}
+                >
+                  Claimable Funds
+                </div>
+                <div className={'text-2xl font-semibold text-white'}>
+                  {myClaimableFunds.toFixed(2)} ETH
+                </div>
+              </div>
+            </button>
+          </div>
 
-          <div className={'flex items-center space-x-4 text-lg md:text-xl'}>
+          <div className={'flex items-center space-x-4 text-xl md:text-2xl'}>
             <button
               onClick={() => setSelectedMenuItem(0)}
               className={`p-2 font-semibold transition ${
@@ -274,7 +301,7 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Receiving From
+              Recipient
             </button>
             <button
               onClick={() => setSelectedMenuItem(1)}
@@ -284,7 +311,7 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Created Splits
+              Creator
             </button>
           </div>
           {selectedMenuItem === 0 &&

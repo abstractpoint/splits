@@ -1,13 +1,14 @@
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
 import Button from 'components/Button'
+import { useDetectOutsideClick } from './useDetectOutsideClick'
 import {
   useEthers,
   getExplorerAddressLink,
   shortenAddress,
 } from '@usedapp/core'
-import { ExternalLink, Share } from 'react-feather'
+import { CreditCard, Share } from 'react-feather'
 
 type IRecipient = {
   address: string
@@ -114,7 +115,8 @@ export default function SplitDetail({
 }): JSX.Element {
   const { chainId } = useEthers()
 
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const dropdownRef = useRef(null)
+  const [isMenuOpen, setIsMenuOpen] = useDetectOutsideClick(dropdownRef, false)
 
   const [isAddressCopied, setAddressIsCopied] = useState<boolean>(false)
   function copyAddressToClipboard() {
@@ -139,7 +141,7 @@ export default function SplitDetail({
   const [isEmbedCopied, setEmbedIsCopied] = useState<boolean>(false)
   function copyEmbedToClipboard() {
     navigator.clipboard.writeText(
-      `<iframe src="http://localhost:3000/embed/${split.address}" width="100%" height="380" frameBorder="0" allowtransparency="true"></iframe>`,
+      `<iframe src="http://localhost:3000/embed/${split.address}" width="100%" height="100%" frameBorder="0" allowtransparency="true"></iframe>`,
     )
     setEmbedIsCopied(true)
     setTimeout(() => {
@@ -149,43 +151,41 @@ export default function SplitDetail({
   }
 
   return (
-    <div className={'p-4 shadow border border-gray-100 rounded-3xl space-y-6'}>
-      <div className={'space-y-2'}>
-        <div className={'flex items-center justify-between relative'}>
-          <div className={'text-2xl font-semibold text-gray-900'}>
-            {split.name} {isEmbedded && 'isEmbedded'}
-          </div>
-          <Button
-            compact
-            color={'purple'}
-            onClick={() => console.log('Send funds')}
-          >
-            Send Funds To Split
-          </Button>
-        </div>
-        <div className={`flex items-center space-x-4 relative`}>
+    <div className={'bg-white rounded-3xl p-4 space-y-6'}>
+      <div className={'space-y-6 flex flex-col items-center justify-center'}>
+        <div className={'flex flex-col items-center justify-center space-y-2'}>
+          <img
+            src={makeBlockie(split.address)}
+            className={'w-20 h-20 rounded-3xl'}
+          />
           <a
             href={chainId && getExplorerAddressLink(split.address, chainId)}
             className={
-              'px-2 py-1 rounded-xl bg-gray-50 hover:bg-gray-100 font-medium flex items-center space-x-1 cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none transition'
+              'font-medium text-gray-400 hover:text-gray-600 transition'
             }
           >
-            <ExternalLink size={16} strokeWidth={2.5} />
-            <div>{split.address.substring(0, 6)}</div>
+            {shortenAddress(split.address)}
           </a>
-          <button
+        </div>
+        <div className={'grid grid-cols-2 gap-4 relative'}>
+          <Button onClick={() => console.log('Send funds')}>
+            <CreditCard
+              size={20}
+              strokeWidth={2.5}
+              className={'opacity-60 mr-2'}
+            />
+            Send Funds
+          </Button>
+          <Button
+            isActive={isMenuOpen}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`px-2 py-1 rounded-xl ${
-              isMenuOpen
-                ? `bg-gray-100 text-gray-600`
-                : `bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600`
-            } font-medium flex items-center space-x-1 cursor-pointer focus:outline-none transition`}
           >
-            <Share size={16} strokeWidth={2.5} />
-            <div>Share</div>
-          </button>
+            <Share size={20} strokeWidth={2.5} className={'opacity-60 mr-2'} />
+            Share Split
+          </Button>
           <nav
-            className={`bg-white p-4 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute top-10 font-medium text-gray-900 w-56 overflow-hidden ${
+            ref={dropdownRef}
+            className={`bg-white p-2 border border-gray-100 rounded-3xl space-y-2 shadow-lg absolute top-12 right-0 font-medium text-gray-900 w-56 overflow-hidden ${
               isMenuOpen ? `block z-50` : `hidden`
             }`}
           >
@@ -201,7 +201,7 @@ export default function SplitDetail({
           </nav>
         </div>
       </div>
-      {split.current_funds > 0 && (
+      {split.current_funds > 0 && !isEmbedded && (
         <DistributeFunds amount={split.current_funds} />
       )}
       <div className={'space-y-2'}>

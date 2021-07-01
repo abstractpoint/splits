@@ -7,7 +7,7 @@ import Menu from 'components/Menu'
 import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
 import { useEthers } from '@usedapp/core'
 import { filter, find, sumBy } from 'lodash'
-import makeBlockie from 'ethereum-blockies-base64'
+import Identicon from 'react-identicons'
 import { HelpCircle } from 'react-feather'
 
 type IRecipient = {
@@ -133,12 +133,7 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
         }
       >
         <div className={'flex items-center space-x-4'}>
-          <div>
-            <img
-              src={makeBlockie(split.address)}
-              className={'w-10 h-10 rounded-xl'}
-            />
-          </div>
+          <Identicon string={split.address} size={40} />
           <div className={'w-full'}>
             <div className={'w-full grid grid-cols-3 gap-4'}>
               <LabelValue label={'Receiving'} value={`${onlyMe.ownership}%`} />
@@ -167,12 +162,7 @@ function SplitSummaryCreator({ split }: { split: ISplit }) {
         }
       >
         <div className={'flex items-center space-x-4'}>
-          <div>
-            <img
-              src={makeBlockie(split.address)}
-              className={'w-10 h-10 rounded-xl'}
-            />
-          </div>
+          <Identicon string={split.address} size={40} />
           <div className={'w-full'}>
             <div className={'w-full grid grid-cols-3 gap-4'}>
               <LabelValue

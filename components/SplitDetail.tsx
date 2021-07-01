@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useState, useRef } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
+import Identicon from 'react-identicons'
 import Button from 'components/Button'
 import { useDetectOutsideClick } from './useDetectOutsideClick'
 import {
@@ -153,19 +154,12 @@ export default function SplitDetail({
   return (
     <div className={'bg-white rounded-3xl p-4 space-y-6'}>
       <div className={'space-y-6 flex flex-col items-center justify-center'}>
-        <div className={'flex flex-col items-center justify-center space-y-2'}>
-          <img
-            src={makeBlockie(split.address)}
-            className={'w-20 h-20 rounded-3xl'}
-          />
-          <a
-            href={chainId && getExplorerAddressLink(split.address, chainId)}
-            className={
-              'font-medium text-gray-400 hover:text-gray-600 transition'
-            }
-          >
-            {shortenAddress(split.address)}
-          </a>
+        <div
+          className={
+            'flex flex-col items-center justify-center space-y-2 border-4 border-gray-50 rounded-3xl p-4'
+          }
+        >
+          <Identicon string={split.address} size={120} />
         </div>
         <div className={'grid grid-cols-2 gap-4 relative'}>
           <Button onClick={() => console.log('Send funds')}>

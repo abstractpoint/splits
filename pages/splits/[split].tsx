@@ -18,7 +18,15 @@ const split = {
     },
     {
       address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-      ownership: 50.0,
+      ownership: 30.0,
+    },
+    {
+      address: '0xc649fca6524014433aeeb926f26dddf984216322',
+      ownership: 15.0,
+    },
+    {
+      address: '0x1022a225cd49fa3c73c9094730a16e5f70ff015b',
+      ownership: 5.0,
     },
   ],
 }

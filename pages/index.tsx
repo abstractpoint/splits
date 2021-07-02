@@ -105,23 +105,6 @@ const splits = [
   },
 ]
 
-function LabelValue({
-  label,
-  value,
-  isRightAligned,
-}: {
-  label: string
-  value: string
-  isRightAligned?: boolean
-}): JSX.Element {
-  return (
-    <div className={`-space-y-1 ${isRightAligned && `text-right`}`}>
-      <div className={'font-medium text-gray-400'}>{label}</div>
-      <div className={'text-lg font-semibold text-gray-900'}>{value}</div>
-    </div>
-  )
-}
-
 function SplitSummaryRecipient({ split }: { split: ISplit }) {
   const { account } = useEthers()
   const onlyMe = find(split.recipients, { address: account }) || 0
@@ -129,22 +112,31 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
         className={
-          'p-4 odd:bg-gray-50 rounded-3xl space-y-2 cursor-pointer hover:opacity-80 transition'
+          'p-4 rounded-3xl border-2 border-gray-100 hover:border-gray-300 cursor-pointer hover:opacity-80 transition space-y-4'
         }
       >
-        <div className={'flex items-center space-x-4'}>
-          <Identicon string={split.address} size={40} />
-          <div className={'w-full'}>
-            <div className={'w-full grid grid-cols-3 gap-4'}>
-              <LabelValue label={'Receiving'} value={`${onlyMe.ownership}%`} />
-              <LabelValue
-                label={'Earned'}
-                value={`${split.total_funds.toFixed(2)} ETH`}
-              />
-              <LabelValue
-                label={'Balance'}
-                value={`${split.current_funds.toFixed(2)} ETH`}
-              />
+        <div className={'flex items-center justify-between'}>
+          <Identicon string={split.address} size={32} />
+          <div className={`-space-y-1 text-right`}>
+            <div className={'text-2xl font-semibold text-gray-900'}>
+              {onlyMe.ownership.toFixed(1)}%
+            </div>
+            <div className={'font-medium text-gray-300 text-sm uppercase'}>
+              Your Share
+            </div>
+          </div>
+        </div>
+        <div className={'grid grid-cols-2 gap-2'}>
+          <div className={'-space-y-1'}>
+            <div className={'font-medium'}>Earnings</div>
+            <div className={'text-gray-400 font-semibold'}>
+              {split.total_funds.toFixed(2)} ETH
+            </div>
+          </div>
+          <div className={'-space-y-1'}>
+            <div className={'font-medium'}>Balance</div>
+            <div className={'text-gray-400 font-semibold'}>
+              {split.current_funds.toFixed(2)} ETH
             </div>
           </div>
         </div>
@@ -158,25 +150,23 @@ function SplitSummaryCreator({ split }: { split: ISplit }) {
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
         className={
-          'p-4 odd:bg-gray-50 rounded-3xl space-y-2 cursor-pointer hover:opacity-80 transition'
+          'p-4 rounded-3xl border-2 border-gray-100 hover:border-gray-300 cursor-pointer hover:opacity-80 transition space-y-4'
         }
       >
-        <div className={'flex items-center space-x-4'}>
-          <Identicon string={split.address} size={40} />
-          <div className={'w-full'}>
-            <div className={'w-full grid grid-cols-3 gap-4'}>
-              <LabelValue
-                label={'Recipients'}
-                value={`${split.recipients.length}`}
-              />
-              <LabelValue
-                label={'Distributed'}
-                value={`${split.total_funds.toFixed(2)} ETH`}
-              />
-              <LabelValue
-                label={'Balance'}
-                value={`${split.current_funds.toFixed(2)} ETH`}
-              />
+        <div className={'flex items-center justify-between'}>
+          <Identicon string={split.address} size={32} />
+        </div>
+        <div className={'grid grid-cols-2 gap-2'}>
+          <div className={'-space-y-1'}>
+            <div className={'font-medium'}>Earnings</div>
+            <div className={'text-gray-400 font-semibold'}>
+              {split.total_funds.toFixed(2)} ETH
+            </div>
+          </div>
+          <div className={'-space-y-1'}>
+            <div className={'font-medium'}>Balance</div>
+            <div className={'text-gray-400 font-semibold'}>
+              {split.current_funds.toFixed(2)} ETH
             </div>
           </div>
         </div>
@@ -219,35 +209,37 @@ export default function Home(): JSX.Element {
       <Menu />
       {account && (
         <div className={'py-4 space-y-4'}>
-          <div className={'mb-8 grid grid-cols-2 md:grid-cols-3 gap-4'}>
+          <div className={'md:my-8 grid grid-cols-2 md:grid-cols-3 gap-2'}>
             <button
               onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
               className={`-space-y-1 p-4 rounded-3xl text-left focus:outline-none relative group`}
             >
               <div
                 className={
-                  'text-lg font-medium text-gray-400 flex items-center'
+                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                My Earnings{' '}
+                Your Earnings{' '}
                 <HelpCircle
                   size={18}
                   className={
-                    'ml-1 text-gray-200 group-hover:text-gray-300 transition'
+                    'ml-2 text-gray-200 group-hover:text-gray-300 transition'
                   }
                 />
               </div>
-              <div className={'text-2xl font-semibold text-gray-900'}>
+              <div
+                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
+              >
                 35.00 ETH
               </div>
               <nav
                 ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-3xl absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
+                className={`bg-black opacity-80 p-4 rounded-lg absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
                   isEarnedTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                My Earnings is how much you&apos;ve received across all the
-                splits you&apos;re a recipient of.
+                This is how much you&apos;ve received across all the splits
+                you&apos;re a recipient of.
               </nav>
             </button>
             <button
@@ -256,34 +248,36 @@ export default function Home(): JSX.Element {
             >
               <div
                 className={
-                  'text-lg font-medium text-gray-400 flex items-center'
+                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                My Balance{' '}
+                Your Balance{' '}
                 <HelpCircle
                   size={18}
                   className={
-                    'ml-1 text-gray-200 group-hover:text-gray-300 transition'
+                    'ml-2 text-gray-200 group-hover:text-gray-300 transition'
                   }
                 />
               </div>
-              <div className={'text-2xl font-semibold text-gray-900'}>
+              <div
+                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
+              >
                 35.00 ETH
               </div>
               <nav
                 ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-3xl absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
+                className={`bg-black opacity-80 p-4 rounded-lg absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
                   isBalanceTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                My Balance is how much has been allocated to you, but isn&apos;t
-                yet ready to be claimed.
+                This is how much has been allocated to you, but isn&apos;t yet
+                ready to be claimed.
               </nav>
             </button>
             <button
               onClick={() => alert('Claim funds')}
               className={
-                'p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 hover:opacity-90 transition focus:outline-none'
+                'col-span-2 sm:col-span-1 p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 hover:opacity-90 transition focus:outline-none'
               }
             >
               <div className={'-space-y-1'}>
@@ -308,7 +302,7 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Recipient
+              Earning
             </button>
             <button
               onClick={() => setSelectedMenuItem(1)}
@@ -318,17 +312,22 @@ export default function Home(): JSX.Element {
                   : `text-gray-400 hover:text-gray-500`
               } focus:outline-none`}
             >
-              Creator
+              Created
             </button>
           </div>
-          {selectedMenuItem === 0 &&
-            splitsReceivingFrom.map((split) => {
-              return <SplitSummaryRecipient key={split.address} split={split} />
-            })}
-          {selectedMenuItem === 1 &&
-            splitsCreated.map((split) => {
-              return <SplitSummaryCreator key={split.address} split={split} />
-            })}
+
+          <div className={'grid grid-cols-1 md:grid-cols-2 gap-4'}>
+            {selectedMenuItem === 0 &&
+              splitsReceivingFrom.map((split) => {
+                return (
+                  <SplitSummaryRecipient key={split.address} split={split} />
+                )
+              })}
+            {selectedMenuItem === 1 &&
+              splitsCreated.map((split) => {
+                return <SplitSummaryCreator key={split.address} split={split} />
+              })}
+          </div>
         </div>
       )}
       {!account && (

@@ -33,5 +33,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# vs code specific
-/.vscode/
+# vs code
+.vscode
+
+# hardhat
+deployments/
+cache/
+artifacts/

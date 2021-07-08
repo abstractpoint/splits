@@ -318,9 +318,6 @@ export default function SplitDetail({
                   {utils.formatEther(split.total_funds.add(recentlyAdded))} ETH
                 </div>
               </div>
-              <div className={'font-medium text-gray-400'}>
-                Earnings are split among recipients by ownership.
-              </div>
               <Button color={'pink'} onClick={() => setIsModalOpen(true)}>
                 <CreditCard
                   size={20}
@@ -335,7 +332,7 @@ export default function SplitDetail({
             >
               <div className={'-space-y-1'}>
                 <div className={'text-lg font-medium text-gray-400'}>
-                  Distributable
+                  Pending
                 </div>
                 <div className={'text-2xl font-semibold text-gray-900'}>
                   {utils.formatEther(
@@ -345,9 +342,6 @@ export default function SplitDetail({
                   )}{' '}
                   ETH
                 </div>
-              </div>
-              <div className={'font-medium text-gray-400'}>
-                Balance must be split before recipients can claim funds.
               </div>
               <Button
                 color={'blue'}
@@ -362,7 +356,7 @@ export default function SplitDetail({
                   strokeWidth={2.5}
                   className={'opacity-60 mr-2'}
                 />
-                Distribute Funds
+                Split Funds
               </Button>
             </div>
           </div>

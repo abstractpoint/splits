@@ -60,7 +60,7 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
               !split.current_funds.eq(0) && `text-blue-500`
             }`}
           >
-            <div className={'font-medium flex'}>Distributable</div>
+            <div className={'font-medium flex'}>Pending</div>
             <div className={'opacity-50 font-semibold'}>
               {utils.formatEther(split.current_funds)} ETH
             </div>
@@ -193,7 +193,7 @@ export default function Home(): JSX.Element {
                   'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                Distributable
+                Earnings
                 <HelpCircle
                   size={18}
                   onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
@@ -205,7 +205,10 @@ export default function Home(): JSX.Element {
               <div
                 className={'text-lg sm:text-2xl font-semibold text-gray-900'}
               >
-                {utils.formatEther(myUnclaimableBalance)} ETH
+                {utils.formatEther(
+                  myUnclaimableBalance.add(claimableFunds).add(earnings),
+                )}{' '}
+                ETH
               </div>
               <div
                 ref={dropdownRef}
@@ -215,6 +218,40 @@ export default function Home(): JSX.Element {
               >
                 This is how much is waiting to be distributed before it can be
                 claimed by you.{' '}
+                <a href={'#'} className={'text-blue-500 font-semibold'}>
+                  Learn more
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className={`rounded-3xl relative`}>
+            <div className={'-space-y-1 '}>
+              <div
+                className={
+                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
+                }
+              >
+                Claimed{' '}
+                <HelpCircle
+                  size={18}
+                  onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
+                  className={
+                    'ml-1 text-gray-200 hover:text-gray-300 transition cursor-pointer'
+                  }
+                />
+              </div>
+              <div
+                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
+              >
+                {utils.formatEther(earnings)} ETH
+              </div>
+              <div
+                ref={dropdownRef}
+                className={`bg-white border border-gray-200 shadow-lg p-3 text-sm rounded-xl absolute font-medium text-gray-700 w-64 overflow-hidden ${
+                  isEarnedTooltipOpen ? `block z-50` : `hidden`
+                }`}
+              >
+                This is how much you&apos;ve claimed from all your splits.{' '}
                 <a href={'#'} className={'text-blue-500 font-semibold'}>
                   Learn more
                 </a>
@@ -252,40 +289,6 @@ export default function Home(): JSX.Element {
               >
                 This is how much you&apos;re currently able to claim across all
                 of your splits.{' '}
-                <a href={'#'} className={'text-blue-500 font-semibold'}>
-                  Learn more
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className={`rounded-3xl relative`}>
-            <div className={'-space-y-1 '}>
-              <div
-                className={
-                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
-                }
-              >
-                Claimed{' '}
-                <HelpCircle
-                  size={18}
-                  onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
-                  className={
-                    'ml-1 text-gray-200 hover:text-gray-300 transition cursor-pointer'
-                  }
-                />
-              </div>
-              <div
-                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
-              >
-                {utils.formatEther(earnings)} ETH
-              </div>
-              <div
-                ref={dropdownRef}
-                className={`bg-white border border-gray-200 shadow-lg p-3 text-sm rounded-xl absolute font-medium text-gray-700 w-64 overflow-hidden ${
-                  isEarnedTooltipOpen ? `block z-50` : `hidden`
-                }`}
-              >
-                This is how much you&apos;ve claimed from all your splits.{' '}
                 <a href={'#'} className={'text-blue-500 font-semibold'}>
                   Learn more
                 </a>

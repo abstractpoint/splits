@@ -16,22 +16,15 @@ import ProgressBar from 'components/ProgressBar'
 import { round, sumBy, endsWith, isEmpty } from 'lodash'
 
 import { useEthers, shortenAddress } from '@usedapp/core'
+import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { isAddress } from '@ethersproject/address'
 import { AddressZero } from '@ethersproject/constants'
 
-type IRecipient = {
-  address: string
-  ownership?: number
-  ens?: string
-  resolvedAddress?: string
-}
-
-type IRecipients = {
-  recipients: IRecipient[]
-}
+import { IRecipient, IRecipients } from 'types'
 
 export default function NewSplit(): JSX.Element {
   const { library } = useEthers()
+  const { splitMain } = useSplits()
   const {
     register,
     control,
@@ -59,12 +52,32 @@ export default function NewSplit(): JSX.Element {
   })
   const totalAllocated = sumBy(recipients, (o) => o.ownership || 0)
 
+  // TODO: what if ens doesn't exist on chain?
   const lookupAddress = async (address: string) =>
     await library?.lookupAddress(address)
   const lookupENS = async (ens: string) => await library?.resolveName(ens)
 
-  // eslint-disable-next-line no-console
-  const onSubmit = (data: IRecipients) => console.log(data)
+  const onSubmit = async (data: IRecipients) => {
+    console.log(data)
+    const accounts = data.recipients.map((r) => r.address)
+    // TODO: scale ownership number appropriately
+    const percentAllocations = data.recipients.map((r) =>
+      PERCENTAGE_SCALE.mul(r.ownership || 0).div(100),
+    )
+    const createSplitTx = await splitMain.createSplit(
+      accounts,
+      percentAllocations,
+    )
+    // TODO: add try/catch
+    const createSplitReceipt = await createSplitTx.wait()
+    // TODO (ad): add success / error ui notifications
+    // do we want to navigate away on success?
+    if (createSplitReceipt.status == 1) {
+      console.log('SUCCESS', createSplitReceipt)
+    } else {
+      console.error(createSplitReceipt)
+    }
+  }
 
   // Determine number of recipients and set ownership equal among all.
   const splitEqually = () => {

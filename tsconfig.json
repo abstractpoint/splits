@@ -31,7 +31,6 @@
     "./hardhat.config.ts"
   ],
   "exclude": [
-    "node_modules",
-    "contracts"
+    "node_modules"
   ]
 }

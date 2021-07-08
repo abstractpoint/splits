@@ -23,7 +23,7 @@
     ]
   },
   "dependencies": {
-    "@usedapp/core": "^0.3.24",
+    "@usedapp/core": "^0.3",
     "ethereum-blockies-base64": "^1.0.2",
     "ethers": "^5.4.0",
     "lodash": "^4.17.21",

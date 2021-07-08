@@ -1,113 +1,26 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { useState, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
 import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
 import { useEthers } from '@usedapp/core'
-import { filter, find, sumBy } from 'lodash'
+import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
+import { filter, find } from 'lodash'
+// TODO: https://www.typescriptlang.org/dt/search?search=identicon
 import Identicon from 'react-identicons'
 import { HelpCircle } from 'react-feather'
 
-type IRecipient = {
-  address: string
-  ownership?: number
-  ens?: string
-  resolvedAddress?: string
-}
+import { BigNumber, utils } from 'ethers'
 
-type ISplit = {
-  address: string
-  name: string
-  current_funds: number
-  total_funds: number
-  recipients: IRecipient[]
-}
+import { IRecipient, ISplit } from 'types'
 
-// Temporary/working split data
-const splits = [
-  {
-    address: '0x1022a225cd49fa3c73c9094730a16e5f70ff015b',
-    name: 'This is a split!',
-    created_by: '0xc649fca6524014433aeeb926f26dddf984216322',
-    current_funds: 20,
-    total_funds: 30,
-    recipients: [
-      {
-        address: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
-        ownership: 50.0,
-      },
-      {
-        address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-        ownership: 50.0,
-      },
-    ],
-  },
-  {
-    address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-    name: 'My first split',
-    created_by: '0xbffb152b9392e38cddc275d818a3db7fe364596b',
-    current_funds: 0,
-    total_funds: 60,
-    recipients: [
-      {
-        address: '0xeb78334dfde3afbc2b904f06153f59cc80ee07fa',
-        ownership: 90.0,
-      },
-      {
-        address: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
-        ownership: 10.0,
-      },
-    ],
-  },
-  {
-    address: '0x8klas74kas8923lkKlahd',
-    name: 'My first split',
-    created_by: '0xcc3645f3d4b06c68e6d65dc0dbe6ae7a5503f3ad',
-    current_funds: 0,
-    total_funds: 300,
-    recipients: [
-      {
-        address: '0xcc3645f3d4b06c68e6d65dc0dbe6ae7a5503f3ad',
-        ownership: 20.0,
-      },
-      {
-        address: '0xf615c211ca2d7508b65cde193f682762d25ded2a',
-        ownership: 70.0,
-      },
-      {
-        address: '0x0f15eafb7c17ca82d5157f37d745a3c426c57fa1',
-        ownership: 10.0,
-      },
-    ],
-  },
-  {
-    address: '0xb1fc37d345ceba64746f2dd9ff983d663059c2a1',
-    name: 'My first split',
-    created_by: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
-    current_funds: 100,
-    total_funds: 4.248,
-    recipients: [
-      {
-        address: '0xea63336ac871755e99c8a23c48ce256042d1d89c',
-        ownership: 20.0,
-      },
-      {
-        address: '0xc649fca6524014433aeeb926f26dddf984216322',
-        ownership: 60.0,
-      },
-      {
-        address: '0x1147086E32B5e372cB7Bce946e4De22171DEc49f',
-        ownership: 20.0,
-      },
-    ],
-  },
-]
-
+// TODO: figure out right data/display model for eth value (e.g. store as BigNumber, display as string vs number?)
+// TODO: combine with below
 function SplitSummaryRecipient({ split }: { split: ISplit }) {
   const { account } = useEthers()
-  const onlyMe = find(split.recipients, { address: account }) || 0
+  const onlyMe = find(split.recipients, { address: account }) as IRecipient
   return (
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
@@ -119,7 +32,11 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
           <Identicon string={split.address} size={32} />
           <div className={`-space-y-1 text-right`}>
             <div className={'text-2xl font-semibold text-gray-900'}>
-              {onlyMe.ownership.toFixed(1)}%
+              {(
+                ((onlyMe.ownership || 0) * 100) /
+                PERCENTAGE_SCALE.toNumber()
+              ).toFixed(1)}
+              %
             </div>
             <div className={'font-medium text-gray-300 text-sm uppercase'}>
               Your Share
@@ -130,13 +47,13 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
           <div className={'-space-y-1'}>
             <div className={'font-medium'}>Earnings</div>
             <div className={'text-gray-400 font-semibold'}>
-              {split.total_funds.toFixed(2)} ETH
+              {utils.formatEther(split.total_funds)} ETH
             </div>
           </div>
           <div className={'-space-y-1'}>
             <div className={'font-medium'}>Balance</div>
             <div className={'text-gray-400 font-semibold'}>
-              {split.current_funds.toFixed(2)} ETH
+              {utils.formatEther(split.current_funds)} ETH
             </div>
           </div>
         </div>
@@ -145,6 +62,7 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
   )
 }
 
+// TODO: combine with above
 function SplitSummaryCreator({ split }: { split: ISplit }) {
   return (
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
@@ -160,13 +78,13 @@ function SplitSummaryCreator({ split }: { split: ISplit }) {
           <div className={'-space-y-1'}>
             <div className={'font-medium'}>Earnings</div>
             <div className={'text-gray-400 font-semibold'}>
-              {split.total_funds.toFixed(2)} ETH
+              {utils.formatEther(split.total_funds)} ETH
             </div>
           </div>
           <div className={'-space-y-1'}>
             <div className={'font-medium'}>Balance</div>
             <div className={'text-gray-400 font-semibold'}>
-              {split.current_funds.toFixed(2)} ETH
+              {utils.formatEther(split.current_funds)} ETH
             </div>
           </div>
         </div>
@@ -176,7 +94,9 @@ function SplitSummaryCreator({ split }: { split: ISplit }) {
 }
 
 export default function Home(): JSX.Element {
-  const { account } = useEthers()
+  const { library, account } = useEthers()
+  /* const { splits, splitMain, hasSigner } = useSplits() */
+  const { splits, splitMain } = useSplits()
 
   const [selectedMenuItem, setSelectedMenuItem] = useState<number>(0)
 
@@ -191,17 +111,78 @@ export default function Home(): JSX.Element {
   )
 
   // Return only the Splits that account is a recipient of
-  const splitsReceivingFrom = filter(splits, {
-    recipients: [{ address: account }],
-  })
+  const splitsReceivingFrom = useMemo(
+    () =>
+      filter(splits, {
+        recipients: [{ address: account }],
+      }) as ISplit[],
+    [splits, account],
+  )
 
   // Return only the Splits that account is the creator of
-  const splitsCreated = filter(splits, { created_by: account })
+  const splitsCreated = useMemo(
+    () => filter(splits, { created_by: account }) as ISplit[],
+    [splits, account],
+  )
 
-  const myClaimableFunds = sumBy(splitsReceivingFrom, (split) => {
-    const onlyMe = find(split.recipients, { address: account }) || 0
-    return (split.current_funds * onlyMe.ownership) / 100
-  })
+  const [claimableFunds, setClaimableFunds] = useState<BigNumber>(
+    BigNumber.from(0),
+  )
+  useEffect(() => {
+    ;(async () => {
+      if (library && account && splitMain) {
+        setClaimableFunds(await splitMain.balances(account))
+      }
+    })()
+  }, [library, account])
+
+  const [earnings, setEarnings] = useState<BigNumber>(BigNumber.from(0))
+  useEffect(() => {
+    ;(async () => {
+      if (library && account) {
+        const transferETHEvents = await splitMain.queryFilter(
+          splitMain.filters.TransferETH(account),
+        )
+        setEarnings(
+          transferETHEvents.reduce(
+            (acc, transfer) => acc.add(transfer.args.amount),
+            BigNumber.from(0),
+          ),
+        )
+      }
+    })()
+  }, [library, account])
+
+  const myUnclaimableBalance = useMemo(
+    () =>
+      splitsReceivingFrom.reduce((acc, split) => {
+        const onlyMe = find(split.recipients, {
+          address: account,
+        }) as IRecipient
+        return onlyMe.ownership
+          ? acc.add(
+              split.current_funds.mul(onlyMe.ownership).div(PERCENTAGE_SCALE),
+            )
+          : acc
+      }, BigNumber.from(0)),
+    [splitsReceivingFrom, account],
+  )
+
+  const claimFunds = useCallback(() => {
+    if (library && account)
+      (async () => {
+        const claimBalanceTx = await splitMain.claimBalance(account)
+        // TODO: add try/catch
+        const claimBalanceReceipt = await claimBalanceTx.wait()
+        // TODO (ad): add success / error ui notifications
+        if (claimBalanceReceipt.status == 1) {
+          console.log('SUCCESS', claimBalanceReceipt)
+        } else {
+          console.error(claimBalanceReceipt)
+        }
+      })()
+    /* }, [library, account, hasSigner]) */
+  }, [library, account])
 
   return (
     <Layout>
@@ -230,7 +211,7 @@ export default function Home(): JSX.Element {
               <div
                 className={'text-lg sm:text-2xl font-semibold text-gray-900'}
               >
-                35.00 ETH
+                {utils.formatEther(earnings)} ETH
               </div>
               <nav
                 ref={dropdownRef}
@@ -262,7 +243,7 @@ export default function Home(): JSX.Element {
               <div
                 className={'text-lg sm:text-2xl font-semibold text-gray-900'}
               >
-                35.00 ETH
+                {utils.formatEther(myUnclaimableBalance)} ETH
               </div>
               <nav
                 ref={dropdownRef}
@@ -275,7 +256,7 @@ export default function Home(): JSX.Element {
               </nav>
             </button>
             <button
-              onClick={() => alert('Claim funds')}
+              onClick={claimFunds}
               className={
                 'col-span-2 sm:col-span-1 p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 hover:opacity-90 transition focus:outline-none'
               }
@@ -287,7 +268,7 @@ export default function Home(): JSX.Element {
                   Claimable Funds
                 </div>
                 <div className={'text-2xl font-semibold text-white'}>
-                  {myClaimableFunds.toFixed(2)} ETH
+                  {utils.formatEther(claimableFunds)} ETH
                 </div>
               </div>
             </button>
@@ -333,7 +314,7 @@ export default function Home(): JSX.Element {
       {!account && (
         <div className={'pt-8 pb-4 space-y-8'}>
           <div className={'text-5xl font-bold text-gray-900'}>
-            Divy up funds before receiving them.
+            Divvy up funds before receiving them.
           </div>
           <div className={'text-2xl text-gray-400'}>
             Splits allows you to automatically route funds to a set of Ethereum

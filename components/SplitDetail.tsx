@@ -1,34 +1,23 @@
 import * as React from 'react'
-import { useState, useRef } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import makeBlockie from 'ethereum-blockies-base64'
 import Identicon from 'react-identicons'
 import Button from 'components/Button'
 import { useDetectOutsideClick } from './useDetectOutsideClick'
 import { useForm, SubmitHandler } from 'react-hook-form'
+import { utils } from 'ethers'
 import {
   useEthers,
   useEtherBalance,
   getExplorerAddressLink,
   shortenAddress,
 } from '@usedapp/core'
+import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { formatEther } from '@ethersproject/units'
 import { CreditCard, Link, Divide } from 'react-feather'
 import Modal from './Modal'
 
-type IRecipient = {
-  address: string
-  ownership?: number
-  ens?: string
-  resolvedAddress?: string
-}
-
-type ISplit = {
-  address: string
-  name: string
-  current_funds: number
-  total_funds: number
-  recipients: IRecipient[]
-}
+import { IRecipient, ISplit } from 'types'
 
 // Display different address UI if recipient is verified (ENS etc)
 function VerifiedRecipient({
@@ -53,7 +42,13 @@ function VerifiedRecipient({
 }
 
 // Display each receipient as a line item with avatar, address, ownership
-function Recipient({ recipient }: { recipient: IRecipient }) {
+function Recipient({
+  split,
+  recipient,
+}: {
+  split: ISplit
+  recipient: IRecipient
+}) {
   const { account, chainId } = useEthers()
   return (
     <div
@@ -82,9 +77,20 @@ function Recipient({ recipient }: { recipient: IRecipient }) {
       </a>
       <div className={'flex items-center space-x-4'}>
         <div className={'opacity-60 text-right'}>
-          {(recipient.ownership || 0 * 0.5).toFixed(2)} ETH
+          {utils.formatEther(
+            split.total_funds
+              .mul(recipient.ownership || 0)
+              .div(PERCENTAGE_SCALE),
+          )}{' '}
+          ETH
         </div>
-        <div className={'w-16'}>{recipient.ownership?.toFixed(1)}%</div>
+        <div className={'w-16'}>
+          {recipient.ownership &&
+            ((recipient.ownership * 100) / PERCENTAGE_SCALE.toNumber()).toFixed(
+              1,
+            )}
+          %
+        </div>
       </div>
     </div>
   )
@@ -117,6 +123,7 @@ export default function SplitDetail({
   split: ISplit
   isEmbedded?: boolean
 }): JSX.Element {
+  const { splitMain, PERCENTAGE_SCALE } = useSplits()
   const dropdownRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useDetectOutsideClick(dropdownRef, false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -144,21 +151,60 @@ export default function SplitDetail({
     }, 800)
   }
 
-  const { account, chainId } = useEthers()
+  const { account, library, chainId } = useEthers()
   const etherBalance = useEtherBalance(account)
 
   type Inputs = {
     amount: string
   }
 
-  function sendFunds({ amount }: { amount: string }) {
-    setIsSendingFunds(true)
-    console.log({ amount: amount, to: split.address, from: account })
-    setIsModalOpen(false)
-    setTimeout(() => {
-      setIsSendingFunds(false)
-    }, 3000)
-  }
+  const sendFunds = useCallback(
+    ({ amount }: { amount: string }) => {
+      if (library && account)
+        (async () => {
+          setIsSendingFunds(true)
+          // TODO: move into hook
+          const sendFundsTx = await splitMain.receiveSplitFunds(split.address, {
+            value: utils.parseEther(amount).toString(),
+          })
+          // TODO: add try/catch
+          const sendFundsReceipt = await sendFundsTx.wait()
+          // TODO (ad): add success / error ui notifications
+          if (sendFundsReceipt.status == 1) {
+            console.log('SUCCESS', sendFundsReceipt)
+          } else {
+            console.error(sendFundsReceipt)
+          }
+          setIsModalOpen(false)
+          setIsSendingFunds(false)
+        })()
+    },
+    [library, account, split.address],
+  )
+
+  const distributeFunds = useCallback(() => {
+    if (library && account)
+      (async () => {
+        setIsSendingFunds(true) // TODO
+        // TODO: move into hook
+        const accounts = split.recipients.map((r) => r.address)
+        const percentAllocations = split.recipients.map((r) => r.ownership || 0)
+        const distributeSplitTx = await splitMain.distributeSplitBalance(
+          split.address,
+          accounts,
+          percentAllocations,
+        )
+        // TODO: add try/catch
+        const distributeSplitReceipt = await distributeSplitTx.wait()
+        // TODO (ad): add success / error ui notifications
+        if (distributeSplitReceipt.status == 1) {
+          console.log('SUCCESS', distributeSplitReceipt)
+        } else {
+          console.error(distributeSplitReceipt)
+        }
+        setIsSendingFunds(false) // TODO
+      })()
+  }, [library, account, split.address])
 
   const { register, handleSubmit } = useForm<Inputs>()
   const onSubmit: SubmitHandler<Inputs> = (data) => sendFunds(data)
@@ -183,11 +229,9 @@ export default function SplitDetail({
               >
                 <input
                   placeholder={'0.0'}
-                  type={'number'}
+                  type={'string'}
                   autoFocus
-                  defaultValue="test"
                   {...register('amount', {
-                    valueAsNumber: true,
                     required: {
                       value: true,
                       message: 'Required',
@@ -278,7 +322,7 @@ export default function SplitDetail({
                   Earnings
                 </div>
                 <div className={'text-2xl font-semibold text-gray-900'}>
-                  {split.total_funds.toFixed(2)} ETH
+                  {utils.formatEther(split.total_funds)} ETH
                 </div>
               </div>
               <div className={'font-medium text-sm text-gray-400'}>
@@ -301,17 +345,14 @@ export default function SplitDetail({
                   Balance
                 </div>
                 <div className={'text-2xl font-semibold text-gray-900'}>
-                  {split.current_funds.toFixed(2)} ETH
+                  {utils.formatEther(split.current_funds)} ETH
                 </div>
               </div>
               <div className={'font-medium text-sm text-gray-400'}>
-                Earn {(split.current_funds * 0.01).toFixed(2)} ETH by paying the
-                gas required to split funds.
+                Earn {utils.formatEther(split.current_funds.div(100))} ETH by
+                paying the gas required to split funds.
               </div>
-              <Button
-                color={'purple'}
-                onClick={() => console.log('Send funds')}
-              >
+              <Button color={'purple'} onClick={distributeFunds}>
                 <Divide
                   size={20}
                   strokeWidth={2.5}
@@ -337,8 +378,8 @@ export default function SplitDetail({
               <div className={'w-16'}>Owned</div>
             </div>
           </div>
-          {split.recipients.map((i) => {
-            return <Recipient key={i.address} recipient={i} />
+          {split.recipients.map((r, i) => {
+            return <Recipient key={i} split={split} recipient={r} />
           })}
           <div
             className={
@@ -348,7 +389,7 @@ export default function SplitDetail({
             <div></div>
             <div className={'flex items-center space-x-4'}>
               <div className={'text-right'}>
-                {split.total_funds.toFixed(2)} ETH
+                {utils.formatEther(split.total_funds)} ETH
               </div>
               <div className={'w-16'}></div>
             </div>

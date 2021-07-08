@@ -1,4 +1,5 @@
 import { HardhatUserConfig } from 'hardhat/types'
+import { task } from 'hardhat/config'
 import '@typechain/hardhat'
 import '@typechain/ethers-v5'
 import '@nomiclabs/hardhat-ethers'
@@ -35,5 +36,45 @@ const config: HardhatUserConfig = {
   //   },
   // },
 }
+
+// TODO: use import & a tasks directory a la https://github.com/nomiclabs/hardhat-hackathon-boilerplate/blob/master/hardhat.config.js
+task('faucet', 'Sends ETH and tokens to an address')
+  .addParam('receiver', 'The address that will receive them')
+  .setAction(async ({ receiver }: { receiver: string }, hre) => {
+    if (hre.network.name === 'hardhat') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'You are running the faucet task with Hardhat network, which' +
+          'gets automatically created and destroyed every time. Use the Hardhat' +
+          " option '--network localhost'",
+      )
+    }
+
+    const [sender] = await hre.ethers.getSigners()
+
+    // const tx = await hre.network.provider.send('hardhat_setBalance', [
+    // await hre.network.provider.send('hardhat_setBalance', [
+    //   receiver,
+    //   hre.ethers.utils.parseEther('.01')._hex,
+    // ])
+
+    const tx = await sender.sendTransaction({
+      to: receiver,
+      value: hre.ethers.constants.WeiPerEther,
+    })
+    await tx.wait()
+
+    // eslint-disable-next-line no-console
+    console.log(`Transferred 1 ETH to ${receiver}`)
+  })
+
+task('reset', 'Reset the network').setAction(async (args, hre) => {
+  await hre.network.provider.request({
+    method: 'hardhat_reset',
+    params: [],
+  })
+  // eslint-disable-next-line no-console
+  console.log('Network reset')
+})
 
 export default config

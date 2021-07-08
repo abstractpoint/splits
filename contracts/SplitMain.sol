@@ -40,7 +40,7 @@ contract SplitMain {
     // The TransferETH event is emitted after each eth transfer to an account is attempted.
     event TransferETH(
                       // The account to which the transfer was attempted.
-                      address account,
+                      address indexed account,
                       // The amount for transfer that was attempted.
                       uint256 amount,
                       // Whether or not the transfer succeeded.
@@ -51,12 +51,14 @@ contract SplitMain {
         wethAddress = wethAddress_;
     }
 
+    // TODO: use uint256 for percentAllocations?
     function createSplit(
                          address[] calldata accounts,
                          uint32[] calldata percentAllocations
                          ) external {
         require(accounts.length == percentAllocations.length, "Mismatched accounts & allocations array lengths");
-        // TODO: do we need to check that e.g. percentAllocations adds up to 100?
+        // TODO: do we need to check that e.g. percentAllocations adds up to 100? yes, could be used to extract funds
+        // TODO: do we need to check that e.g. percentAllocations are all non-negative? no, overflow in check that sums up to 100 should be triggered if negative allocations used
         // TODO: should we cap split size?
         bytes32 splitHash = hashSplit(accounts, percentAllocations);
         address splitAddress = address(uint160(bytes20(splitHash)));
@@ -84,7 +86,7 @@ contract SplitMain {
         // TODO: pay distributor
         for(uint i=0; i < accounts.length; i++) {
             // TODO: amountFromPercent or scaleAmountByPercentage?
-            balances[accounts[i]] += amountFromPercent(toDistribute, percentAllocations[i]);
+            balances[accounts[i]] += scaleAmountByPercentage(toDistribute, percentAllocations[i]);
         }
         emit DistributeSplit(split, toDistribute);
     }
@@ -106,13 +108,13 @@ contract SplitMain {
         /*
           Example:
           If there is 100 ETH in the account, and someone has 
-          an allocation of 2%, we call this with 100 as the amount, and 200
+          an allocation of 2%, we call this with 100 as the amount, and 2*10e3
           as the scaled percent.
 
-          To find out the amount we use, for example: (100 * 200) / (100 * 100)
+          To find out the amount we use, for example: (100 * 2*10e3) / (10e5)
           which returns 2 -- i.e. 2% of the 100 ETH balance.
         */
-        scaledAmount = (amount * scaledPercent) / (100 * PERCENTAGE_SCALE);
+        scaledAmount = (amount * scaledPercent) / (PERCENTAGE_SCALE);
     }
 
     //======== Private Functions ========

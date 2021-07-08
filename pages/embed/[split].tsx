@@ -2,6 +2,7 @@ import * as React from 'react'
 import Title from 'components/Title'
 import SplitDetail from 'components/SplitDetail'
 
+// TODO
 const split = {
   address: '0x1022a225cd49fa3c73c9094730a16e5f70ff015b',
   name: 'This is a split!',

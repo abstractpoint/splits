@@ -262,7 +262,7 @@ export class SplitMain extends BaseContract {
     >
 
     TransferETH(
-      account?: null,
+      account?: string | null,
       amount?: null,
       success?: null,
     ): TypedEventFilter<

@@ -26,7 +26,7 @@ function ConnectButton() {
       setActivateError(error.message)
       setTimeout(() => {
         setActivateError('')
-      }, 3000)
+      }, 5000)
     }
   }, [error])
 

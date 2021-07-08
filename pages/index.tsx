@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
-import Button from 'components/Button'
 import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
 import { useEthers } from '@usedapp/core'
 import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
@@ -61,7 +60,7 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
               !split.current_funds.eq(0) && `text-blue-500`
             }`}
           >
-            <div className={'font-medium flex'}>Balance</div>
+            <div className={'font-medium flex'}>Distributable</div>
             <div className={'opacity-50 font-semibold'}>
               {utils.formatEther(split.current_funds)} ETH
             </div>
@@ -74,7 +73,6 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
 
 export default function Home(): JSX.Element {
   const { library, account } = useEthers()
-  /* const { splits, splitMain, hasSigner } = useSplits() */
   const { splits, splitMain } = useSplits()
 
   const [selectedMenuItem, setSelectedMenuItem] = useState<number>(0)
@@ -158,12 +156,14 @@ export default function Home(): JSX.Element {
         // TODO (ad): add success / error ui notifications
         if (claimBalanceReceipt.status == 1) {
           console.log('SUCCESS', claimBalanceReceipt)
+          setEarnings((e) => e.add(claimableFunds))
+          setClaimableFunds(BigNumber.from(0))
         } else {
           console.error(claimBalanceReceipt)
         }
       })()
     /* }, [library, account, hasSigner]) */
-  }, [library, account])
+  }, [library, account, setEarnings, setClaimableFunds, claimableFunds])
 
   function Summary() {
     return (
@@ -193,7 +193,7 @@ export default function Home(): JSX.Element {
                   'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                Balance
+                Distributable
                 <HelpCircle
                   size={18}
                   onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
@@ -213,7 +213,8 @@ export default function Home(): JSX.Element {
                   isBalanceTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                This is how much is waiting to be split and then claimed by you.{' '}
+                This is how much is waiting to be distributed before it can be
+                claimed by you.{' '}
                 <a href={'#'} className={'text-blue-500 font-semibold'}>
                   Learn more
                 </a>
@@ -264,7 +265,7 @@ export default function Home(): JSX.Element {
                   'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                Earnings{' '}
+                Claimed{' '}
                 <HelpCircle
                   size={18}
                   onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}

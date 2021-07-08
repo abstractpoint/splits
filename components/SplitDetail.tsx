@@ -5,7 +5,7 @@ import { Identicon } from '@lidofinance/identicon'
 import Button from 'components/Button'
 import { useDetectOutsideClick } from './useDetectOutsideClick'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { utils } from 'ethers'
+import { utils, BigNumber } from 'ethers'
 import {
   useEthers,
   useEtherBalance,
@@ -45,9 +45,11 @@ function VerifiedRecipient({
 function Recipient({
   split,
   recipient,
+  recentlyAdded,
 }: {
   split: ISplit
   recipient: IRecipient
+  recentlyAdded: BigNumber
 }) {
   const { account, chainId } = useEthers()
   return (
@@ -79,6 +81,7 @@ function Recipient({
         <div className={'opacity-60 text-right'}>
           {utils.formatEther(
             split.total_funds
+              .add(recentlyAdded)
               .mul(recipient.ownership || 0)
               .div(PERCENTAGE_SCALE),
           )}{' '}
@@ -103,7 +106,7 @@ export default function SplitDetail({
   split: ISplit
   isEmbedded?: boolean
 }): JSX.Element {
-  const { splitMain, PERCENTAGE_SCALE } = useSplits()
+  const { splitMain } = useSplits()
   const dropdownRef = useRef(null)
   const [isMenuOpen, setIsMenuOpen] = useDetectOutsideClick(dropdownRef, false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -138,6 +141,10 @@ export default function SplitDetail({
     amount: string
   }
 
+  // TODO: reconsider
+  const [recentlyAdded, setRecentlyAdded] = useState<BigNumber>(
+    BigNumber.from(0),
+  )
   const sendFunds = useCallback(
     ({ amount }: { amount: string }) => {
       if (library && account)
@@ -151,15 +158,20 @@ export default function SplitDetail({
           // TODO (ad): add success / error ui notifications
           if (sendFundsReceipt.status == 1) {
             console.log('SUCCESS', sendFundsReceipt)
+            setRecentlyAdded(utils.parseEther(amount))
           } else {
             console.error(sendFundsReceipt)
           }
           setIsModalOpen(false)
         })()
     },
-    [library, account, split.address],
+    [library, account, split.address, setRecentlyAdded],
   )
 
+  // TODO: reconsider
+  const [recentlyDistributed, setRecentlyDistributed] = useState<BigNumber>(
+    BigNumber.from(0),
+  )
   const distributeFunds = useCallback(() => {
     if (library && account)
       (async () => {
@@ -176,14 +188,22 @@ export default function SplitDetail({
         // TODO (ad): add success / error ui notifications
         if (distributeSplitReceipt.status == 1) {
           console.log('SUCCESS', distributeSplitReceipt)
+          setRecentlyDistributed(split.current_funds.add(recentlyAdded))
         } else {
           console.error(distributeSplitReceipt)
         }
       })()
-  }, [library, account, split.address])
+  }, [library, account, split.address, recentlyAdded, setRecentlyDistributed])
 
   const { register, handleSubmit } = useForm<Inputs>()
   const onSubmit: SubmitHandler<Inputs> = (data) => sendFunds(data)
+
+  /* useEffect(() => {
+   *   const event;
+
+   *   splitMain.on(event, listener)
+   *   return () => splitMain.off(event, listener)
+   * }, []) */
 
   return (
     <div>
@@ -295,7 +315,7 @@ export default function SplitDetail({
                   Earnings
                 </div>
                 <div className={'text-2xl font-semibold text-gray-900'}>
-                  {utils.formatEther(split.total_funds)} ETH
+                  {utils.formatEther(split.total_funds.add(recentlyAdded))} ETH
                 </div>
               </div>
               <div className={'font-medium text-gray-400'}>
@@ -315,10 +335,15 @@ export default function SplitDetail({
             >
               <div className={'-space-y-1'}>
                 <div className={'text-lg font-medium text-gray-400'}>
-                  Balance
+                  Distributable
                 </div>
                 <div className={'text-2xl font-semibold text-gray-900'}>
-                  {utils.formatEther(split.current_funds)} ETH
+                  {utils.formatEther(
+                    split.current_funds
+                      .add(recentlyAdded)
+                      .sub(recentlyDistributed),
+                  )}{' '}
+                  ETH
                 </div>
               </div>
               <div className={'font-medium text-gray-400'}>
@@ -326,7 +351,10 @@ export default function SplitDetail({
               </div>
               <Button
                 color={'blue'}
-                isDisabled={split.current_funds.eq(0)}
+                isDisabled={split.current_funds
+                  .add(recentlyAdded)
+                  .sub(recentlyDistributed)
+                  .eq(0)}
                 onClick={distributeFunds}
               >
                 <Divide
@@ -334,7 +362,7 @@ export default function SplitDetail({
                   strokeWidth={2.5}
                   className={'opacity-60 mr-2'}
                 />
-                Split Funds
+                Distribute Funds
               </Button>
             </div>
           </div>
@@ -355,7 +383,14 @@ export default function SplitDetail({
             </div>
           </div>
           {split.recipients.map((r, i) => {
-            return <Recipient key={i} split={split} recipient={r} />
+            return (
+              <Recipient
+                key={i}
+                split={split}
+                recipient={r}
+                recentlyAdded={recentlyAdded}
+              />
+            )
           })}
         </div>
       </div>

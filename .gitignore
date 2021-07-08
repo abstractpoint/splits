@@ -37,6 +37,7 @@ yarn-error.log*
 .vscode
 
 # hardhat
-deployments/
-cache/
-artifacts/
+/deployments
+/cache
+/artifacts
+/typechain

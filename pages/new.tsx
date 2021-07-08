@@ -20,6 +20,8 @@ import { useEthers, shortenAddress } from '@usedapp/core'
 import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { isAddress } from '@ethersproject/address'
 import { AddressZero } from '@ethersproject/constants'
+// TODO: remove
+import { getDefaultProvider } from '@ethersproject/providers'
 
 import { IRecipient, IRecipients } from 'types'
 
@@ -54,16 +56,20 @@ export default function NewSplit(): JSX.Element {
   const totalAllocated = sumBy(recipients, (o) => o.ownership || 0)
 
   // TODO: what if ens doesn't exist on chain?
+  /* const defaultENSProvider = getDefaultProvider({ chainId: 1 }) */
+  const defaultENSProvider = getDefaultProvider()
   const lookupAddress = async (address: string) => {
     try {
-      return await library?.lookupAddress(address)
+      /* return await library?.lookupAddress(address) */
+      return await defaultENSProvider?.lookupAddress(address)
     } catch (e) {
       console.error(e)
     }
   }
   const lookupENS = async (ens: string) => {
     try {
-      return await library?.resolveName(ens)
+      /* return await library?.resolveName(ens) */
+      return await defaultENSProvider?.resolveName(ens)
     } catch (e) {
       console.error(e)
     }

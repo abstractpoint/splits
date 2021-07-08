@@ -74,12 +74,12 @@ export default function Menu(): JSX.Element {
       {router.pathname !== '/' ? (
         <Link href={'/'}>
           <img
-            src={'/splits_logo.png'}
+            src={'/splits_logo.svg'}
             className={'w-12 h-12 cursor-pointer hover:opacity-80 transition'}
           />
         </Link>
       ) : (
-        <img src={'/splits_logo.png'} className={'w-12 h-12'} />
+        <img src={'/splits_logo.svg'} className={'w-12 h-12'} />
       )}
       <div className={'flex items-center space-x-4 relative'}>
         {account ? (

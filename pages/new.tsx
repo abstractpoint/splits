@@ -7,6 +7,7 @@ import {
   UseFormSetValue,
   UseFormRegister,
 } from 'react-hook-form'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
@@ -23,6 +24,7 @@ import { AddressZero } from '@ethersproject/constants'
 import { IRecipient, IRecipients } from 'types'
 
 export default function NewSplit(): JSX.Element {
+  const router = useRouter()
   const { library } = useEthers()
   const { splitMain } = useSplits()
   const {
@@ -74,6 +76,7 @@ export default function NewSplit(): JSX.Element {
     // do we want to navigate away on success?
     if (createSplitReceipt.status == 1) {
       console.log('SUCCESS', createSplitReceipt)
+      router.push('/')
     } else {
       console.error(createSplitReceipt)
     }
@@ -86,22 +89,6 @@ export default function NewSplit(): JSX.Element {
       return setValue(`recipients.${index}.ownership`, round(100 / num, 1), {
         shouldValidate: true,
       })
-    })
-  }
-
-  // Determine amount remaining and split equally among all recipients.
-  const splitRemaining = () => {
-    const num = fields.length
-    const remaining = 100 - totalAllocated
-    fields.forEach((_, index) => {
-      const currentValue = getValues(`recipients.${index}.ownership`) || 0
-      return setValue(
-        `recipients.${index}.ownership`,
-        currentValue + round(remaining / num, 1),
-        {
-          shouldValidate: true,
-        },
-      )
     })
   }
 
@@ -120,7 +107,7 @@ export default function NewSplit(): JSX.Element {
   // TODO: AD validate, convert ownership properly
   return (
     <Layout>
-      <Title value="New Split | Splits" />
+      <Title value="Splits | New Split" />
       <Menu />
       <div className={'py-4 space-y-4'}>
         <Link href={'/'}>
@@ -144,19 +131,10 @@ export default function NewSplit(): JSX.Element {
                 type={'button'}
                 onClick={() => splitEqually()}
                 className={
-                  'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-l-lg'
+                  'px-3 py-1.5 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-lg'
                 }
               >
-                Split evenly
-              </button>
-              <button
-                type={'button'}
-                onClick={() => splitRemaining()}
-                className={
-                  'p-2 bg-gray-500 bg-opacity-5 hover:bg-opacity-10 font-medium text-sm text-gray-500 transition focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-r-lg'
-                }
-              >
-                Split remaining
+                Split Evenly
               </button>
             </div>
           </div>

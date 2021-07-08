@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
+import Button from 'components/Button'
 import { useDetectOutsideClick } from 'components/useDetectOutsideClick'
 import { useEthers } from '@usedapp/core'
 import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { filter, find } from 'lodash'
-// TODO: https://www.typescriptlang.org/dt/search?search=identicon
-import Identicon from 'react-identicons'
+import { Identicon } from '@lidofinance/identicon'
+import makeBlockie from 'ethereum-blockies-base64'
 import { HelpCircle } from 'react-feather'
 
 import { BigNumber, utils } from 'ethers'
@@ -17,7 +18,6 @@ import { BigNumber, utils } from 'ethers'
 import { IRecipient, ISplit } from 'types'
 
 // TODO: figure out right data/display model for eth value (e.g. store as BigNumber, display as string vs number?)
-// TODO: combine with below
 function SplitSummaryRecipient({ split }: { split: ISplit }) {
   const { account } = useEthers()
   const onlyMe = find(split.recipients, { address: account }) as IRecipient
@@ -25,65 +25,44 @@ function SplitSummaryRecipient({ split }: { split: ISplit }) {
     <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
       <div
         className={
-          'p-4 rounded-3xl border-2 border-gray-100 hover:border-gray-300 cursor-pointer hover:opacity-80 transition space-y-4'
+          'p-4 rounded-3xl border-2 border-gray-100 hover:border-gray-300 cursor-pointer transition flex flex-col space-y-4'
         }
       >
         <div className={'flex items-center justify-between'}>
-          <Identicon string={split.address} size={32} />
-          <div className={`-space-y-1 text-right`}>
-            <div className={'text-2xl font-semibold text-gray-900'}>
-              {(
-                ((onlyMe.ownership || 0) * 100) /
-                PERCENTAGE_SCALE.toNumber()
-              ).toFixed(1)}
-              %
-            </div>
-            <div className={'font-medium text-gray-300 text-sm uppercase'}>
-              Your Share
-            </div>
-          </div>
-        </div>
-        <div className={'grid grid-cols-2 gap-2'}>
-          <div className={'-space-y-1'}>
-            <div className={'font-medium'}>Earnings</div>
-            <div className={'text-gray-400 font-semibold'}>
-              {utils.formatEther(split.total_funds)} ETH
-            </div>
-          </div>
-          <div className={'-space-y-1'}>
-            <div className={'font-medium'}>Balance</div>
-            <div className={'text-gray-400 font-semibold'}>
-              {utils.formatEther(split.current_funds)} ETH
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
+          <Identicon address={split.address} diameter={40} />
+          {onlyMe && account && (
+            <div
+              className={`bg-gray-100 rounded-full px-3 py-1 text-right flex items-center space-x-2`}
+            >
+              <img
+                src={makeBlockie(account)}
+                className={'w-5 h-5 rounded-full'}
+              />
 
-// TODO: combine with above
-function SplitSummaryCreator({ split }: { split: ISplit }) {
-  return (
-    <Link href={`/splits/[split]`} as={`/splits/${split.address}`}>
-      <div
-        className={
-          'p-4 rounded-3xl border-2 border-gray-100 hover:border-gray-300 cursor-pointer hover:opacity-80 transition space-y-4'
-        }
-      >
-        <div className={'flex items-center justify-between'}>
-          <Identicon string={split.address} size={32} />
+              <div className={'text-lg font-medium text-gray-900'}>
+                {(
+                  ((onlyMe.ownership || 0) * 100) /
+                  PERCENTAGE_SCALE.toNumber()
+                ).toFixed(1)}
+                %
+              </div>
+            </div>
+          )}
         </div>
-        <div className={'grid grid-cols-2 gap-2'}>
+        <div className={'grid grid-cols-2 gap-2 flex-grow items-end'}>
           <div className={'-space-y-1'}>
             <div className={'font-medium'}>Earnings</div>
-            <div className={'text-gray-400 font-semibold'}>
+            <div className={'opacity-50 font-semibold'}>
               {utils.formatEther(split.total_funds)} ETH
             </div>
           </div>
-          <div className={'-space-y-1'}>
-            <div className={'font-medium'}>Balance</div>
-            <div className={'text-gray-400 font-semibold'}>
+          <div
+            className={`-space-y-1 ${
+              !split.current_funds.eq(0) && `text-blue-500`
+            }`}
+          >
+            <div className={'font-medium flex'}>Balance</div>
+            <div className={'opacity-50 font-semibold'}>
               {utils.formatEther(split.current_funds)} ETH
             </div>
           </div>
@@ -109,6 +88,8 @@ export default function Home(): JSX.Element {
     dropdownRef,
     false,
   )
+  const [isClaimableTooltipOpen, setIsClaimableTooltipOpen] =
+    useDetectOutsideClick(dropdownRef, false)
 
   // Return only the Splits that account is a recipient of
   const splitsReceivingFrom = useMemo(
@@ -184,59 +165,40 @@ export default function Home(): JSX.Element {
     /* }, [library, account, hasSigner]) */
   }, [library, account])
 
-  return (
-    <Layout>
-      <Title value="Splits" />
-      <Menu />
-      {account && (
-        <div className={'py-4 space-y-4'}>
-          <div className={'md:my-8 grid grid-cols-2 md:grid-cols-3 gap-2'}>
+  function Summary() {
+    return (
+      <div
+        className={
+          'mb-8 rounded-3xl p-4 space-y-4 border border-gray-100 shadow'
+        }
+      >
+        <div className={'flex items-center justify-between'}>
+          <div className={'text-2xl font-medium'}>Your Account</div>
+          {!claimableFunds.eq(0) && (
             <button
-              onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
-              className={`-space-y-1 p-4 rounded-3xl text-left focus:outline-none relative group`}
+              onClick={claimFunds}
+              className={
+                'px-4 py-2 bg-gradient-to-tr from-blue-500 to-purple-500 text-white font-semibold text-lg rounded-xl focus:outline-none hover:opacity-90 transition'
+              }
             >
-              <div
-                className={
-                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
-                }
-              >
-                Your Earnings{' '}
-                <HelpCircle
-                  size={18}
-                  className={
-                    'ml-2 text-gray-200 group-hover:text-gray-300 transition'
-                  }
-                />
-              </div>
-              <div
-                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
-              >
-                {utils.formatEther(earnings)} ETH
-              </div>
-              <nav
-                ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-lg absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
-                  isEarnedTooltipOpen ? `block z-50` : `hidden`
-                }`}
-              >
-                This is how much you&apos;ve received across all the splits
-                you&apos;re a recipient of.
-              </nav>
+              Claim Funds
             </button>
-            <button
-              onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
-              className={`-space-y-1 p-4 rounded-3xl text-left focus:outline-none relative group`}
-            >
+          )}
+        </div>
+        <div className={'grid grid-cols-2 md:grid-cols-3 gap-2'}>
+          <div className={`rounded-3xl text-left relative`}>
+            <div className={'-space-y-1'}>
               <div
                 className={
                   'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
                 }
               >
-                Your Balance{' '}
+                Balance
                 <HelpCircle
                   size={18}
+                  onClick={() => setIsBalanceTooltipOpen(!isBalanceTooltipOpen)}
                   className={
-                    'ml-2 text-gray-200 group-hover:text-gray-300 transition'
+                    'ml-1 text-gray-200 hover:text-gray-300 transition cursor-pointer'
                   }
                 />
               </div>
@@ -245,35 +207,102 @@ export default function Home(): JSX.Element {
               >
                 {utils.formatEther(myUnclaimableBalance)} ETH
               </div>
-              <nav
+              <div
                 ref={dropdownRef}
-                className={`bg-black opacity-80 p-4 rounded-lg absolute top-20 font-medium text-white w-64 overflow-hidden blurred ${
+                className={`bg-white border border-gray-200 shadow-lg p-3 text-sm rounded-xl absolute font-medium text-gray-700 w-64 overflow-hidden ${
                   isBalanceTooltipOpen ? `block z-50` : `hidden`
                 }`}
               >
-                This is how much has been allocated to you, but isn&apos;t yet
-                ready to be claimed.
-              </nav>
-            </button>
-            <button
-              onClick={claimFunds}
-              className={
-                'col-span-2 sm:col-span-1 p-4 space-y-2 rounded-3xl text-left group bg-gradient-to-tr from-blue-500 to-purple-600 hover:opacity-90 transition focus:outline-none'
-              }
-            >
-              <div className={'-space-y-1'}>
-                <div
-                  className={'text-lg font-medium text-white text-opacity-60'}
-                >
-                  Claimable Funds
-                </div>
-                <div className={'text-2xl font-semibold text-white'}>
-                  {utils.formatEther(claimableFunds)} ETH
-                </div>
+                This is how much is waiting to be split and then claimed by you.{' '}
+                <a href={'#'} className={'text-blue-500 font-semibold'}>
+                  Learn more
+                </a>
               </div>
-            </button>
+            </div>
           </div>
+          <div className={`rounded-3xl text-left relative space-y-2`}>
+            <div className={'-space-y-1'}>
+              <div
+                className={
+                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
+                }
+              >
+                Claimable
+                <HelpCircle
+                  size={18}
+                  onClick={() =>
+                    setIsClaimableTooltipOpen(!isClaimableTooltipOpen)
+                  }
+                  className={
+                    'ml-1 text-gray-200 hover:text-gray-300 transition cursor-pointer'
+                  }
+                />
+              </div>
+              <div
+                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
+              >
+                {utils.formatEther(claimableFunds)} ETH
+              </div>
+              <div
+                ref={dropdownRef}
+                className={`bg-white border border-gray-200 shadow-lg p-3 text-sm rounded-xl absolute font-medium text-gray-700 w-64 overflow-hidden ${
+                  isClaimableTooltipOpen ? `block z-50` : `hidden`
+                }`}
+              >
+                This is how much you&apos;re currently able to claim across all
+                of your splits.{' '}
+                <a href={'#'} className={'text-blue-500 font-semibold'}>
+                  Learn more
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className={`rounded-3xl relative`}>
+            <div className={'-space-y-1 '}>
+              <div
+                className={
+                  'text-sm sm:text-lg font-medium text-gray-400 flex items-center'
+                }
+              >
+                Earnings{' '}
+                <HelpCircle
+                  size={18}
+                  onClick={() => setIsEarnedTooltipOpen(!isEarnedTooltipOpen)}
+                  className={
+                    'ml-1 text-gray-200 hover:text-gray-300 transition cursor-pointer'
+                  }
+                />
+              </div>
+              <div
+                className={'text-lg sm:text-2xl font-semibold text-gray-900'}
+              >
+                {utils.formatEther(earnings)} ETH
+              </div>
+              <div
+                ref={dropdownRef}
+                className={`bg-white border border-gray-200 shadow-lg p-3 text-sm rounded-xl absolute font-medium text-gray-700 w-64 overflow-hidden ${
+                  isEarnedTooltipOpen ? `block z-50` : `hidden`
+                }`}
+              >
+                This is how much you&apos;ve claimed from all your splits.{' '}
+                <a href={'#'} className={'text-blue-500 font-semibold'}>
+                  Learn more
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
+  return (
+    <Layout>
+      <Title value="Splits" />
+      <Menu />
+      {account && (
+        <div className={'py-4 space-y-4'}>
+          <Summary />
           <div className={'flex items-center space-x-4 text-xl md:text-2xl'}>
             <button
               onClick={() => setSelectedMenuItem(0)}
@@ -306,7 +335,9 @@ export default function Home(): JSX.Element {
               })}
             {selectedMenuItem === 1 &&
               splitsCreated.map((split) => {
-                return <SplitSummaryCreator key={split.address} split={split} />
+                return (
+                  <SplitSummaryRecipient key={split.address} split={split} />
+                )
               })}
           </div>
         </div>

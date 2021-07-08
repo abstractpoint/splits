@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/wminshew/Development/splits/contracts/SplitMain.sol": {
-      "lastModificationDate": 1625736934986,
+    "/Users/abram/dev/splits/contracts/SplitMain.sol": {
+      "lastModificationDate": 1625737315295,
       "contentHash": "0b59972a6d5dc07f3bc9b2467f56c88b",
       "sourceName": "contracts/SplitMain.sol",
       "solcConfig": {

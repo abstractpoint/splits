@@ -4,9 +4,13 @@ import { useEthers } from '@usedapp/core'
 import { Contract } from '@ethersproject/contracts'
 import { zipWith, keyBy } from 'lodash'
 
+import Layout from 'components/Layout'
+import Menu from 'components/Menu'
+
 import { ISplitsContext, ISplit, IRecipient } from 'types'
 import { SplitMain } from 'typechain/SplitMain'
 import SPLIT_MAIN_ARTIFACT from 'artifacts/contracts/SplitMain.sol/SplitMain.json'
+import Title from 'components/Title'
 
 // TODO: use .env
 const SPLIT_MAIN_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
@@ -68,8 +72,20 @@ export default function SplitsContextComp({
     })()
   }, [library])
 
-  // TODO: add loading wrapper?
-  if (!library) return <div>loading...</div>
+  if (!library)
+    return (
+      <Layout>
+        <Title value={'Splits'} />
+        <div className={'flex items-center justify-between pb-4'}>
+          <img src={'/splits_logo.svg'} className={'w-12 h-12'} />
+        </div>
+        <div className={'py-4'}>
+          <div
+            className={'rounded-3xl bg-gray-100 animate-pulse w-full h-32'}
+          />
+        </div>
+      </Layout>
+    )
 
   return (
     <SplitsContext.Provider

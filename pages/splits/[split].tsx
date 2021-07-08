@@ -18,7 +18,7 @@ export default function Split(): JSX.Element {
 
   return (
     <Layout>
-      <Title value="Split | Splits" />
+      <Title value={`Splits | ${split.address.slice(0, 6)}`} />
       <Menu />
       <div className={'py-4 space-y-4'}>
         <Link href={'/'}>

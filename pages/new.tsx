@@ -32,7 +32,6 @@ export default function NewSplit(): JSX.Element {
     control,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<IRecipients>({
     mode: 'onBlur',
@@ -55,9 +54,20 @@ export default function NewSplit(): JSX.Element {
   const totalAllocated = sumBy(recipients, (o) => o.ownership || 0)
 
   // TODO: what if ens doesn't exist on chain?
-  const lookupAddress = async (address: string) =>
-    await library?.lookupAddress(address)
-  const lookupENS = async (ens: string) => await library?.resolveName(ens)
+  const lookupAddress = async (address: string) => {
+    try {
+      return await library?.lookupAddress(address)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  const lookupENS = async (ens: string) => {
+    try {
+      return await library?.resolveName(ens)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const onSubmit = async (data: IRecipients) => {
     console.log(data)

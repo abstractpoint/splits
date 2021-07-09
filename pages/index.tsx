@@ -91,7 +91,7 @@ export default function Home(): JSX.Element {
   const [isClaimableTooltipOpen, setIsClaimableTooltipOpen] =
     useDetectOutsideClick(dropdownRef, false)
 
-  const [walletETH, setWalletETH] = useState<BigNumber>()
+  const [walletETH, setWalletETH] = useState<BigNumber>(BigNumber.from(0))
   useEffect(() => {
     ;(async () => {
       if (library && account) {

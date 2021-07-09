@@ -279,11 +279,15 @@ const SplitAddressEntry = ({
           // TODO: add loading state
           const address = await lookupENS(recipient.address)
           if (address) {
-            setValue(`recipients.${index}`, {
-              address: address,
-              ens: recipient.address,
-              resolvedAddress: address,
-            })
+            setValue(
+              `recipients.${index}`,
+              {
+                address: address,
+                ens: recipient.address,
+                resolvedAddress: address,
+              },
+              { shouldTouch: true },
+            )
           } else {
             // TODO: add some kind of error/validation letting user know search was unsuccessful
             setValue(`recipients.${index}`, {

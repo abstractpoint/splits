@@ -17,7 +17,8 @@ import Menu from 'components/Menu'
 import ProgressBar from 'components/ProgressBar'
 import { round, sumBy, endsWith, isEmpty } from 'lodash'
 
-import { useEthers, shortenAddress } from '@usedapp/core'
+/* import { useEthers, shortenAddress } from '@usedapp/core' */
+import { shortenAddress } from '@usedapp/core'
 import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { isAddress } from '@ethersproject/address'
 import { AddressZero } from '@ethersproject/constants'
@@ -42,7 +43,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
 export default function NewSplit({ alchemyApiKey }: Props): JSX.Element {
   const router = useRouter()
-  const { library } = useEthers()
+  /* const { library } = useEthers() */
   const { splitMain } = useSplits()
   const {
     register,

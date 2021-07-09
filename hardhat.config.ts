@@ -10,7 +10,6 @@ import 'hardhat-deploy'
 // import 'hardhat-deploy-ethers'
 
 import 'tsconfig-paths/register'
-// import 'dotenv/config'
 
 // const { alchemyAPIKey, deployerPrivateKey } = require('./env.json')
 // const alchemyAPIKey = process.env.ALCHEMY_API_KEY
@@ -59,8 +58,9 @@ task('faucet', 'Sends ETH and tokens to an address')
         to: receiver,
         value: hre.ethers.constants.WeiPerEther.mul(BigNumber.from(amount)),
       })
-      await tx.wait() // eslint-disable-next-line no-console
+      await tx.wait()
 
+      // eslint-disable-next-line no-console
       console.log(`Transferred ${amount} ETH to ${receiver}`)
     },
   )

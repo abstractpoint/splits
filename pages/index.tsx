@@ -14,6 +14,7 @@ import makeBlockie from 'ethereum-blockies-base64'
 import { HelpCircle } from 'react-feather'
 
 import { BigNumber, utils } from 'ethers'
+import { formatEther } from '@ethersproject/units'
 
 import { IRecipient, ISplit } from 'types'
 
@@ -90,6 +91,15 @@ export default function Home(): JSX.Element {
   const [isClaimableTooltipOpen, setIsClaimableTooltipOpen] =
     useDetectOutsideClick(dropdownRef, false)
 
+  const [walletETH, setWalletETH] = useState<BigNumber>()
+  useEffect(() => {
+    ;(async () => {
+      if (library && account) {
+        setWalletETH(await library.getBalance(account))
+      }
+    })()
+  }, [setWalletETH, account, library])
+
   // Return only the Splits that account is a recipient of
   const splitsReceivingFrom = useMemo(
     () =>
@@ -161,6 +171,7 @@ export default function Home(): JSX.Element {
             id: toastId,
           })
           setEarnings((e) => e.add(claimableFunds))
+          setWalletETH((e) => e.add(claimableFunds))
           setClaimableFunds(BigNumber.from(0))
         } else {
           toast.error('Error sending funds', {
@@ -175,11 +186,18 @@ export default function Home(): JSX.Element {
     return (
       <div
         className={
-          'mb-8 rounded-3xl p-4 space-y-4 border border-gray-100 shadow'
+          'mb-8 rounded-3xl p-4 space-y-6 border border-gray-100 shadow'
         }
       >
         <div className={'flex items-center justify-between'}>
-          <div className={'text-2xl font-medium'}>Your Account</div>
+          <div className={'-space-y-1'}>
+            <div className={'text-xl font-medium'}>Your Account</div>
+            {walletETH && (
+              <div className={'font-medium text-gray-400'}>
+                Balance: {formatEther(walletETH)}
+              </div>
+            )}
+          </div>
           {!claimableFunds.eq(0) && (
             <button
               onClick={claimFunds}

@@ -72,20 +72,20 @@ export default function SplitsContextComp({
     })()
   }, [library])
 
-  if (!library)
-    return (
-      <Layout>
-        <Title value={'Splits'} />
-        <div className={'flex items-center justify-between pb-4'}>
-          <img src={'/splits_logo.svg'} className={'w-12 h-12'} />
-        </div>
-        <div className={'py-4'}>
-          <div
-            className={'rounded-3xl bg-gray-100 animate-pulse w-full h-32'}
-          />
-        </div>
-      </Layout>
-    )
+  // if (!library)
+  //   return (
+  //     <Layout>
+  //       <Title value={'Splits'} />
+  //       <div className={'flex items-center justify-between pb-4'}>
+  //         <img src={'/splits_logo.svg'} className={'w-12 h-12'} />
+  //       </div>
+  //       <div className={'py-4'}>
+  //         <div
+  //           className={'rounded-3xl bg-gray-100 animate-pulse w-full h-32'}
+  //         />
+  //       </div>
+  //     </Layout>
+  //   )
 
   return (
     <SplitsContext.Provider

@@ -7,6 +7,7 @@ import {
   UseFormSetValue,
   UseFormRegister,
 } from 'react-hook-form'
+import toast from 'react-hot-toast'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Title from 'components/Title'
@@ -104,9 +105,7 @@ export default function NewSplit({ alchemyApiKey }: Props): JSX.Element {
   )
 
   const onSubmit = async (data: IRecipients) => {
-    toast(data.toString())
     const accounts = data.recipients.map((r) => r.address)
-    // TODO: scale ownership number appropriately
     const percentAllocations = data.recipients.map((r) =>
       PERCENTAGE_SCALE.mul(r.ownership || 0).div(100),
     )
@@ -114,15 +113,20 @@ export default function NewSplit({ alchemyApiKey }: Props): JSX.Element {
       accounts,
       percentAllocations,
     )
+    const toastId = toast.loading('Creating split...')
     // TODO: add try/catch
     const createSplitReceipt = await createSplitTx.wait()
     // TODO (ad): add success / error ui notifications
     // do we want to navigate away on success?
     if (createSplitReceipt.status == 1) {
-      console.log('SUCCESS', createSplitReceipt)
+      toast.success('Split created!', {
+        id: toastId,
+      })
       router.push('/')
     } else {
-      console.error(createSplitReceipt)
+      toast.error('Error creating split', {
+        id: toastId,
+      })
     }
   }
 

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Toaster } from 'react-hot-toast'
 import 'tailwindcss/tailwind.css'
 import 'styles/styles.css'
 import {
@@ -42,11 +43,14 @@ function App({
   pageProps: IPageProps
 }): JSX.Element {
   return (
-    <DAppProvider config={config}>
-      <SplitsProvider>
-        <Component {...pageProps} />
-      </SplitsProvider>
-    </DAppProvider>
+    <>
+      <Toaster />
+      <DAppProvider config={config}>
+        <SplitsProvider>
+          <Component {...pageProps} />
+        </SplitsProvider>
+      </DAppProvider>
+    </>
   )
 }
 

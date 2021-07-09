@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useState, useCallback, useRef } from 'react'
+import toast from 'react-hot-toast'
 import makeBlockie from 'ethereum-blockies-base64'
 import { Identicon } from '@lidofinance/identicon'
 import Button from 'components/Button'
@@ -153,14 +154,19 @@ export default function SplitDetail({
           const sendFundsTx = await splitMain.receiveSplitFunds(split.address, {
             value: utils.parseEther(amount).toString(),
           })
+          const toastId = toast.loading('Sending funds...')
           // TODO: add try/catch
           const sendFundsReceipt = await sendFundsTx.wait()
           // TODO (ad): add success / error ui notifications
           if (sendFundsReceipt.status == 1) {
-            console.log('SUCCESS', sendFundsReceipt)
+            toast.success('Funds sent!', {
+              id: toastId,
+            })
             setRecentlyAdded(utils.parseEther(amount))
           } else {
-            console.error(sendFundsReceipt)
+            toast.error('Error sending funds', {
+              id: toastId,
+            })
           }
           setIsModalOpen(false)
         })()
@@ -183,14 +189,18 @@ export default function SplitDetail({
           accounts,
           percentAllocations,
         )
+        const toastId = toast.loading('Splitting funds...')
         // TODO: add try/catch
         const distributeSplitReceipt = await distributeSplitTx.wait()
-        // TODO (ad): add success / error ui notifications
         if (distributeSplitReceipt.status == 1) {
-          console.log('SUCCESS', distributeSplitReceipt)
+          toast.success('Funds split!', {
+            id: toastId,
+          })
           setRecentlyDistributed(split.current_funds.add(recentlyAdded))
         } else {
-          console.error(distributeSplitReceipt)
+          toast.error('Error splitting funds', {
+            id: toastId,
+          })
         }
       })()
   }, [library, account, split.address, recentlyAdded, setRecentlyDistributed])

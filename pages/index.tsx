@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import toast from 'react-hot-toast'
 import Title from 'components/Title'
 import Layout from 'components/Layout'
 import Menu from 'components/Menu'
@@ -151,15 +152,20 @@ export default function Home(): JSX.Element {
     if (library && account)
       (async () => {
         const claimBalanceTx = await splitMain.claimBalance(account)
+        const toastId = toast.loading('Claiming funds...')
         // TODO: add try/catch
         const claimBalanceReceipt = await claimBalanceTx.wait()
         // TODO (ad): add success / error ui notifications
         if (claimBalanceReceipt.status == 1) {
-          console.log('SUCCESS', claimBalanceReceipt)
+          toast.success('Funds claimed!', {
+            id: toastId,
+          })
           setEarnings((e) => e.add(claimableFunds))
           setClaimableFunds(BigNumber.from(0))
         } else {
-          console.error(claimBalanceReceipt)
+          toast.error('Error sending funds', {
+            id: toastId,
+          })
         }
       })()
     /* }, [library, account, hasSigner]) */

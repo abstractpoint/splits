@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast'
 import makeBlockie from 'ethereum-blockies-base64'
 import { Identicon } from '@lidofinance/identicon'
@@ -9,7 +9,6 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import { utils, BigNumber } from 'ethers'
 import {
   useEthers,
-  useEtherBalance,
   getExplorerAddressLink,
   shortenAddress,
 } from '@usedapp/core'
@@ -135,8 +134,14 @@ export default function SplitDetail({
   }
 
   const { account, library, chainId } = useEthers()
-  // TODO: why is this showing up as undefined?
-  const etherBalance = useEtherBalance(account)
+  const [walletETH, setWalletETH] = useState<BigNumber>()
+  useEffect(() => {
+    ;(async () => {
+      if (library && account) {
+        setWalletETH(await library.getBalance(account))
+      }
+    })()
+  }, [setWalletETH, account, library])
 
   type Inputs = {
     amount: string
@@ -208,13 +213,6 @@ export default function SplitDetail({
   const { register, handleSubmit } = useForm<Inputs>()
   const onSubmit: SubmitHandler<Inputs> = (data) => sendFunds(data)
 
-  /* useEffect(() => {
-   *   const event;
-
-   *   splitMain.on(event, listener)
-   *   return () => splitMain.off(event, listener)
-   * }, []) */
-
   return (
     <div>
       {account && chainId ? (
@@ -263,9 +261,9 @@ export default function SplitDetail({
               </button>
             </div>
           </form>
-          {etherBalance && (
+          {walletETH && (
             <div className={'text-lg font-medium text-gray-400'}>
-              Balance: {formatEther(etherBalance)}
+              Balance: {formatEther(walletETH)}
             </div>
           )}
         </Modal>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useCallback } from 'react'
 import {
   useForm,
   useFieldArray,
@@ -21,11 +21,25 @@ import { useSplits, PERCENTAGE_SCALE } from 'context/splitsContext'
 import { isAddress } from '@ethersproject/address'
 import { AddressZero } from '@ethersproject/constants'
 // TODO: remove
-import { getDefaultProvider } from '@ethersproject/providers'
+/* import { getDefaultProvider } from '@ethersproject/providers' */
+import { JsonRpcProvider } from '@ethersproject/providers'
 
+import { GetStaticProps } from 'next'
 import { IRecipient, IRecipients } from 'types'
 
-export default function NewSplit(): JSX.Element {
+interface Props {
+  alchemyApiKey: string
+}
+
+export const getStaticProps: GetStaticProps = async () => {
+  return {
+    props: {
+      alchemyApiKey: process.env.ALCHEMY_API_KEY,
+    }, // will be passed to the page component as props
+  }
+}
+
+export default function NewSplit({ alchemyApiKey }: Props): JSX.Element {
   const router = useRouter()
   const { library } = useEthers()
   const { splitMain } = useSplits()
@@ -56,27 +70,41 @@ export default function NewSplit(): JSX.Element {
   const totalAllocated = sumBy(recipients, (o) => o.ownership || 0)
 
   // TODO: what if ens doesn't exist on chain?
-  /* const defaultENSProvider = getDefaultProvider({ chainId: 1 }) */
-  const defaultENSProvider = getDefaultProvider()
-  const lookupAddress = async (address: string) => {
-    try {
-      /* return await library?.lookupAddress(address) */
-      return await defaultENSProvider?.lookupAddress(address)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-  const lookupENS = async (ens: string) => {
-    try {
-      /* return await library?.resolveName(ens) */
-      return await defaultENSProvider?.resolveName(ens)
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  /* const defaultENSProvider = getDefaultProvider(undefined, {
+   *   alchemy: alchemyApiKey,
+   * }) */
+  const ensProvider = useMemo(
+    () =>
+      new JsonRpcProvider(
+        `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+      ),
+    [alchemyApiKey],
+  )
+  const lookupAddress = useCallback(
+    async (address: string) => {
+      try {
+        /* return await library?.lookupAddress(address) */
+        return await ensProvider?.lookupAddress(address)
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [ensProvider],
+  )
+  const lookupENS = useCallback(
+    async (ens: string) => {
+      try {
+        /* return await library?.resolveName(ens) */
+        return await ensProvider?.resolveName(ens)
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [ensProvider],
+  )
 
   const onSubmit = async (data: IRecipients) => {
-    console.log(data)
+    toast(data.toString())
     const accounts = data.recipients.map((r) => r.address)
     // TODO: scale ownership number appropriately
     const percentAllocations = data.recipients.map((r) =>
